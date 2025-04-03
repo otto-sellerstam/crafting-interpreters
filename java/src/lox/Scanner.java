@@ -67,8 +67,10 @@ class Scanner {
             case '<' -> addToken(match('=') ? LESS_EQUAL : LESS);
             case '>' -> addToken(match('=') ? GREATER_EQUAL : GREATER);
             case '/' -> {
-                if (match('/')) {
+                if (match('/')) { // Single line comment.
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) { /* Multiline comment. */
+                    multilineComment();
                 } else {
                     addToken(SLASH);
                 }
@@ -129,6 +131,20 @@ class Scanner {
 
         String value = source.substring(start + 1, current - 1);
         addToken(STRING, value);
+    }
+
+    private void multilineComment() { /* Does not yet support nested multiline comments. */
+        while (peek() != '*' && peekNext() != '/' && !isAtEnd()) {
+            if (advance() == '\n') {
+                line++;
+            };
+        }
+        if (peek() == '*' && peekNext() == '/') {
+            advance();
+            advance();
+        } else if (isAtEnd()) {
+            Lox.error(line, "Unterminated multiline comment.");
+        }
     }
 
     private boolean match(char expected) {
