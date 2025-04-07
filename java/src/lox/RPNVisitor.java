@@ -7,12 +7,12 @@ class RPNVisitor implements Expr.Visitor<String> {
 
     @Override
     public String visitBinaryExpr(Expr.Binary expr) {
-        return expr.left;
+        return RPN(expr.operator.lexeme, expr.left, expr.right);
     }
 
     @Override
     public String visitGroupingExpr(Expr.Grouping expr) {
-        return "";
+        return expr.expression.accept(this);
     }
 
     @Override
@@ -26,15 +26,32 @@ class RPNVisitor implements Expr.Visitor<String> {
         return "";
     }
 
+    private String RPN(String symbol, Expr left, Expr right) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(left.accept(this));
+        builder.append(" ");
+        builder.append(right.accept(this));
+        builder.append(" ");
+        builder.append(symbol);
+
+        return builder.toString();
+    }
+
     public static void main(String[] args) {
         Expr expression = new Expr.Binary(
-            new Expr.Unary(
-                new Token(TokenType.MINUS, "-", null, 1),
-                new Expr.Literal(123)
+            new Expr.Binary(
+                new Expr.Literal(2),
+                new Token(TokenType.PLUS, "+", null, 1),
+                new Expr.Literal(3)
             ),
             new Token(TokenType.STAR, "*", null, 1),
             new Expr.Grouping(
-                new Expr.Literal(45.67)
+                new Expr.Binary(
+                    new Expr.Literal(5),
+                    new Token(TokenType.MINUS, "-", null, 1),
+                    new Expr.Literal(1)
+                )
             )
         );
         System.out.println(new RPNVisitor().print(expression));
