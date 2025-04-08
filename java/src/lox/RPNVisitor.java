@@ -50,7 +50,7 @@ class RPNVisitor implements Expr.Visitor<String> {
                 new Expr.Binary(
                     new Expr.Literal(5),
                     new Token(TokenType.MINUS, "-", null, 1),
-                    new Expr.Literal(1)
+                    new Expr.Unary(new Token(TokenType.MINUS, "-", null, 1), new Expr.Literal(1))
                 )
             )
         );

@@ -144,6 +144,7 @@ class Scanner {
             advance();
         } else if (isAtEnd()) {
             Lox.error(line, "Unterminated multiline comment.");
+            return
         }
     }
 
