@@ -1,6 +1,11 @@
 
+import logging
+
 from python.src.lox.scanner import Scanner
 from python.src.lox.token import Token
+from python.src.lox.tokentype import TokenType
+
+logger = logging.getLogger(__name__)
 
 class Lox:
     had_error: bool = False
@@ -18,8 +23,25 @@ class Lox:
     def run_prompt():
         pass
 
-    def error():
-        pass
+    def error(
+        self,
+        token: Token,
+        message: str,
+        line: int | None = None,
+    ):
+        if line is None:
+            self.report(line, '', message)
+        else:
+            if (token.type == TokenType.EOF):
+                self.report(token.line, ' at end', message)
+            else:
+                self.report(token.line, ' at \'' + token.lexeme + '\'', message)
 
-    def report():
-        pass
+    def report(
+        self,
+        line: int,
+        where: str,
+        message: str,
+    ):
+        logger.error("[line " + line + "] Error" + where + ": " + message)
+        self.had_error = True

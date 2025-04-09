@@ -1,4 +1,5 @@
 from python.src.lox.token import Token
+from python.src.lox.tokentype import TokenType
 from python.src.lox.expr import Expr, Binary, Grouping, Unary, Literal
 
 class Parser:
@@ -12,7 +13,7 @@ class Parser:
     def equality(self) -> Expr:
         expr = self.comparison()
 
-        while match(
+        while self.match(
             TokenType.BANG_EQUAL,
             TokenType.EQUAL_EQUAL,
         ):
@@ -25,7 +26,7 @@ class Parser:
     def comparison(self) -> Expr:
         expr = self.term()
 
-        while match(
+        while self.match(
             TokenType.GREATER,
             TokenType.GREATER_EQUAL,
             TokenType.LESS,
@@ -40,7 +41,7 @@ class Parser:
     def term(self) -> Expr:
         expr = self.factor()
 
-        while match(
+        while self.match(
             TokenType.MINUS,
             TokenType.PLUS,
         ):
@@ -53,7 +54,7 @@ class Parser:
     def factor(self) -> Expr:
         expr = self.unary()
 
-        while match(
+        while self.match(
             TokenType.SLASH,
             TokenType.STAR,
         ):
@@ -64,7 +65,7 @@ class Parser:
         return expr
 
     def unary(self) -> Expr:
-        if match(
+        if self.match(
             TokenType.BANG,
             TokenType.MINUS,
         ):
@@ -75,7 +76,7 @@ class Parser:
         return self.primary()
 
     def primary(self) -> Expr:
-        if match(TokenType.LEFT_PAREN):
+        if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(
                 TokenType.RIGHT_PAREN,
@@ -91,9 +92,44 @@ class Parser:
             TokenType.NUMBER,
             TokenType.STRING,
         ):
-            return Literal(previous().literal)
+            return Literal(self.previous().literal)
 
         #throw error(peek(), "Expected expression.")
 
-    
+    def match(self, *tokentypes: TokenType) -> bool:
+        for tokentype in tokentypes:
+            if self.check(tokentype):
+                self.advance()
+                return True
+            
+        return False
 
+    def consume(self, tokentype: TokenType, message: str) -> Token:
+        if self.check(tokentype):
+            return self.advance()
+
+        #throw error(peek(), message);
+
+    def synchronize(self):
+        self.advance()
+
+        while not self.isatend():
+            if self.previous().type == TokenType.SEMICOLON:
+                return
+
+            if self.peek().type in [
+                TokenType.CLASS,
+                TokenType.FUN,
+                TokenType.VAR,
+                TokenType.FOR,
+                TokenType.IF,
+                TokenType.WHILE,
+                TokenType.PRINT,
+                TokenType.RETURN,
+            ]:
+                return
+
+            self.advance()
+
+    def check(self, tokentype: TokenType):
+        pass
