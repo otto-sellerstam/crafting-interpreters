@@ -1,11 +1,10 @@
 from typing import Any
 
-from python.src.lox.token import Token
-from python.src.lox.tokentype import TokenType
-from python.src.lox.lox import Lox
+from lox.token import Token
+from lox.tokentype import TokenType
+#from lox.lox import Lox
 
 class Scanner:
-
     keywords: dict[str, Token] = {
         "and": TokenType.AND,
         "class": TokenType.CLASS,
@@ -37,7 +36,9 @@ class Scanner:
             self.start = self.current
             self.scan_token()
 
-        self.tokens.push(Token(TokenType.EOF, "", None, self.line))
+        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
+        
+        return self.tokens
 
     def scan_token(self):
         char: str = self.advance()
@@ -75,13 +76,14 @@ class Scanner:
                 elif char.isalpha():
                     self.identifier()
                 else:
-                    Lox.error(self.line, "Unexpected character.")
+                    pass
+                    #Lox.error(self.line, 'Unexpected character.')
 
     def identifier(self):
         while self.peek().isalnum():
             self.advance()
 
-        text = self.source[self.start, self.current]
+        text = self.source[self.start:self.current]
         tokentype = self.keywords[text]
         if tokentype is None:
             tokentype = TokenType.IDENTIFIER
@@ -89,7 +91,7 @@ class Scanner:
         self.add_token(tokentype)
 
     def number(self):
-        while self.is_digit(self.peek()):
+        while self.peek().isdigit():
             self.advance()
 
         if self.peek() == '.' and self.is_digit(self.peek_next()):
@@ -98,7 +100,7 @@ class Scanner:
             while self.is_digit(self.peek()):
                 self.advance()
 
-        text = self.source[self.start, self.current]
+        text = self.source[self.start:self.current]
         self.add_token(TokenType.NUMBER, float(text))
 
     def string(self):
@@ -108,7 +110,7 @@ class Scanner:
             self.advance()
 
         if self.isatend():
-            Lox.error(self.line, "Unterminated string literal.")
+            #Lox.error(self.line, "Unterminated string literal.")
             return
 
         self.advance()
@@ -129,7 +131,7 @@ class Scanner:
             self.advance()
             self.advance()
         elif self.isatend():
-            Lox.error(self.line, "Unterminated multiline comment.")
+            #Lox.error(self.line, "Unterminated multiline comment.")
             return
 
     def match(self, expected: str) -> bool:
@@ -164,11 +166,12 @@ class Scanner:
         tokentype: TokenType,
         literal: Any = None,
     ):
-        text = self.source[self.start, self.current]
-        self.tokens.push(
+        text = self.source[self.start:self.current]
+        self.tokens.append(
             Token(
                 tokentype,
                 text,
-                literal
+                literal,
+                self.line,
             )
         )

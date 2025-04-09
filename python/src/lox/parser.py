@@ -1,6 +1,6 @@
-from python.src.lox.token import Token
-from python.src.lox.tokentype import TokenType
-from python.src.lox.expr import Expr, Binary, Grouping, Unary, Literal
+from lox.token import Token
+from lox.tokentype import TokenType
+from lox.expr import Expr, Binary, Grouping, Unary, Literal
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -84,9 +84,9 @@ class Parser:
             )
             return Grouping(expr)
 
-        if self.match(TokenType.FALSE) return Literal(False)
-        if self.match(TokenType.TRUE) return Literal(True)
-        if self.match(TokenType.NIL) return Literal(None)
+        if self.match(TokenType.FALSE): return Literal(False)
+        if self.match(TokenType.TRUE): return Literal(True)
+        if self.match(TokenType.NIL): return Literal(None)
 
         if self.match(
             TokenType.NUMBER,
@@ -114,10 +114,10 @@ class Parser:
         self.advance()
 
         while not self.isatend():
-            if self.previous().type == TokenType.SEMICOLON:
+            if self.previous().tokentype == TokenType.SEMICOLON:
                 return
 
-            if self.peek().type in [
+            if self.peek().tokentype in [
                 TokenType.CLASS,
                 TokenType.FUN,
                 TokenType.VAR,
@@ -131,5 +131,31 @@ class Parser:
 
             self.advance()
 
-    def check(self, tokentype: TokenType):
-        pass
+    def check(self, tokentype: TokenType) -> bool:
+        if self.isatend():
+            return False
+
+        return self.peek().tokentype == tokentype
+
+    def advance(self) -> Token:
+        if not self.isatend():
+            self.current += 1
+
+        return self.previous()
+
+    def isatend(self) -> bool:
+        return self.peek().tokentype == TokenType.EOF
+
+    def peek(self) -> Token:
+        return self.tokens[self.current]
+
+    def previous(self) -> Token:
+        return self.tokens[self.current - 1]
+
+    def parse(self) -> Expr:
+        try:
+            return self.expression()
+        except Exception as e:
+            print(f'An error occurred during parsing: {e}')
+            raise e
+            return None
