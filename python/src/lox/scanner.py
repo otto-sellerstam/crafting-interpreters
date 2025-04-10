@@ -24,6 +24,23 @@ class Scanner:
         "while": TokenType.WHILE,
     }
 
+    #"och": TokenType.AND,
+    #"klass": TokenType.CLASS,
+    #"annars": TokenType.ELSE,
+    #"falskt": TokenType.FALSE,
+    #"när": TokenType.FOR,
+    #"funktion": TokenType.FUN,
+    #"om": TokenType.IF,
+    #"ingenting": TokenType.NIL,
+    #"eller": TokenType.OR,
+    #"skriv": TokenType.PRINT,
+    #"retur": TokenType.RETURN,
+    #"super": TokenType.SUPER,
+    #"denna": TokenType.THIS,
+    #"sant": TokenType.TRUE,
+    #"grej": TokenType.VAR,
+    #"när": TokenType.WHILE,
+
     def __init__(self, source: str):
         self.source: str = source
         self.tokens: list[Token] = []

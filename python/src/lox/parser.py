@@ -1,7 +1,7 @@
 from lox.token import Token
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Unary, Literal, Variable, Assign
-from lox.stmt import Stmt, Print, Expression, Var
+from lox.stmt import Stmt, Print, Expression, Var, Block
 
 class LoxSyntaxError(SyntaxError):
     pass
@@ -27,6 +27,8 @@ class Parser:
     def statement(self) -> Stmt:
         if self.match_tokentype(TokenType.PRINT):
             return self.print_statement()
+        if self.match_tokentype(TokenType.LEFT_BRACE):
+            return Block(self.block())
         
         return self.expression_statement()
 
@@ -52,6 +54,18 @@ class Parser:
         expr = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Expression(expr)
+    
+    def block(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+
+        while (
+            not self.check(TokenType.RIGHT_BRACE)
+            and not self.isatend()
+        ):
+            statements.append(self.declaration())
+
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block")
+        return statements
 
     def assignment(self) -> Expr:
         expr = self.equality()

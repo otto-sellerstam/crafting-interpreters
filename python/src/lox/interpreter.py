@@ -2,7 +2,7 @@ from typing import Any
 
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Literal, Unary, Variable, Assign
-from lox.stmt import Stmt, Expression, Print, Var
+from lox.stmt import Block, Stmt, Expression, Print, Var
 from lox.environment import Environment
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
@@ -95,15 +95,27 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
     def execute(self, stmt: Stmt):
         stmt.accept(self)
 
+    def execute_block(self, stmts: list[Stmt], environment: Environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+
+            for stmt in stmts:
+                self.execute(stmt)
+        finally:
+            self.environment = previous
+
+    def visit_block_stmt(self, stmt: Block) -> None:
+        self.execute_block(stmt.statements, Environment(self.environment))
+
     def visit_expression_stmt(self, stmt: Expression) -> None:
-        self.evaluate(stmt.expression)
-        return None
+        value = self.evaluate(stmt.expression)
+        print(value)
 
     def visit_print_stmt(self, stmt: Print) -> None:
         ''' Same as above, but we don't discard the value but print it. '''
         value = self.evaluate(stmt.expression)
         print(value)
-        return None
 
     def visit_var_stmt(self, stmt: Var) -> None:
         value = None
@@ -112,7 +124,6 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
             value = self.evaluate(stmt.initializer)
 
         self.environment.define(stmt.name.lexeme, value)
-        return None
 
     def visit_assign_expr(self, expr: Assign) -> Any:
         value = self.evaluate(expr.value)

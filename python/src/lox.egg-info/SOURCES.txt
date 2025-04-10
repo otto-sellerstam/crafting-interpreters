@@ -1,11 +1,14 @@
 setup.py
 src/lox/__init__.py
-src/lox/astprint.py
+src/lox/astprinter.py
+src/lox/environment.py
 src/lox/expr.py
+src/lox/interpreter.py
 src/lox/lox.py
 src/lox/parser.py
 src/lox/rpn_visitor.py
 src/lox/scanner.py
+src/lox/stmt.py
 src/lox/token.py
 src/lox/tokentype.py
 src/lox.egg-info/PKG-INFO

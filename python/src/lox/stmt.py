@@ -48,6 +48,15 @@ class Stmt(ABC):
             """
             pass
 
+        @abstractmethod
+        def visit_block_stmt(self, stmt: Block) -> T:
+            """Process a print statement.
+            
+            Args:
+                expr: The print statement to process.
+            """
+            pass
+
 #
 # Side note: NamedTuples would probably be preferrable here, but would result
 # in a clash of metaclasses.
@@ -76,3 +85,9 @@ class Var(Stmt):
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_var_stmt(self)
 
+@dataclass(frozen=True)
+class Block(Stmt):
+    statements: list[Stmt]
+
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_block_stmt(self)
