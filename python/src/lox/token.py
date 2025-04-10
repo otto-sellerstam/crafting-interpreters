@@ -9,6 +9,3 @@ class Token:
     lexeme: str
     literal: Any
     line: int
-
-    def __str__(self) -> str:
-        return self.__repr__()
