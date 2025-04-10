@@ -5,7 +5,7 @@ from lox.tokentype import TokenType
 #from lox.lox import Lox
 
 class Scanner:
-    keywords: dict[str, Token] = {
+    keywords: dict[str, TokenType] = {
         "and": TokenType.AND,
         "class": TokenType.CLASS,
         "else": TokenType.ELSE,
@@ -94,10 +94,10 @@ class Scanner:
         while self.peek().isdigit():
             self.advance()
 
-        if self.peek() == '.' and self.is_digit(self.peek_next()):
+        if self.peek() == '.' and self.peek_next().isdigit():
             self.advance()
 
-            while self.is_digit(self.peek()):
+            while self.peek().isdigit():
                 self.advance()
 
         text = self.source[self.start:self.current]
@@ -115,10 +115,10 @@ class Scanner:
 
         self.advance()
 
-        text = self.source[self.start + 1, self.current - 1]
+        text = self.source[self.start + 1:self.current - 1]
         self.add_token(TokenType.STRING, text)
 
-    def multicomment(self):
+    def multiline_comment(self):
         while (
             self.peek() != '*' 
             and self.peek_next() != '/'

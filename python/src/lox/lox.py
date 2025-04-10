@@ -44,9 +44,9 @@ class Lox:
         line: int | None = None,
     ):
         if line is None:
-            self.report(line, '', message)
+            self.report(-1, '', message)
         else:
-            if (token.type == TokenType.EOF):
+            if (token.tokentype == TokenType.EOF):
                 self.report(token.line, ' at end', message)
             else:
                 self.report(token.line, ' at \'' + token.lexeme + '\'', message)
@@ -57,7 +57,7 @@ class Lox:
         where: str,
         message: str,
     ):
-        logger.error("[line " + line + "] Error" + where + ": " + message)
+        logger.error("[line " + str(line) + "] Error" + where + ": " + message)
         self.had_error = True
 
 if __name__ == '__main__':

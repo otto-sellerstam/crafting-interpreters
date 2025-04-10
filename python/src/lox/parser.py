@@ -94,6 +94,8 @@ class Parser:
         ):
             return Literal(self.previous().literal)
 
+        raise Exception # TODO: Fix.
+
         #throw error(peek(), "Expected expression.")
 
     def match(self, *tokentypes: TokenType) -> bool:
@@ -107,6 +109,8 @@ class Parser:
     def consume(self, tokentype: TokenType, message: str) -> Token:
         if self.check(tokentype):
             return self.advance()
+
+        raise Exception # TODO: Fix.
 
         #throw error(peek(), message);
 

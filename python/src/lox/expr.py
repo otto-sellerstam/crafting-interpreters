@@ -56,11 +56,12 @@ class Visitor[T](ABC):
         """
         pass
 
-##
+#
 # Side note: NamedTuples would probably be preferrable here, but would result
 # in a clash of metaclasses.
-##
-
+#
+# One would be to to combine NamedTypleMeta and ABCMeta.
+#
 @dataclass(frozen=True)
 class Binary(Expr):
     """Represents a binary operation expression."""
