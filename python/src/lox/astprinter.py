@@ -1,8 +1,8 @@
-from lox.expr import Visitor, Expr, Binary, Grouping, Literal, Unary
+from lox.expr import Expr, Binary, Grouping, Literal, Unary
 from lox.token import Token
 from lox.tokentype import TokenType
 
-class AstPrinter(Visitor[str]):
+class AstPrinter(Expr.Visitor[str]):
 
     def print(self, expr: Expr) -> str:
         return expr.accept(self)
@@ -32,17 +32,6 @@ class AstPrinter(Visitor[str]):
         )
 
     def parenthesize(self, name: str, *exprs: Expr) -> str:
-        #builder = ''
-        #
-        #builder += '('
-        #builder += name
-        #
-        #for expr in exprs:
-        #    builder += ' '
-        #    builder += expr.accept(self)
-        #
-        #builder += ')'
-
         builder = f'({name} {" ".join(expr.accept(self) for expr in exprs)})'
         return builder
 

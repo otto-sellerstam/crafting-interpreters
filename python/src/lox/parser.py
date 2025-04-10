@@ -1,6 +1,10 @@
 from lox.token import Token
 from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Unary, Literal
+from lox.expr import Expr, Binary, Grouping, Unary, Literal, Variable, Assign
+from lox.stmt import Stmt, Print, Expression, Var
+
+class LoxSyntaxError(SyntaxError):
+    pass
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -8,12 +12,67 @@ class Parser:
         self.current = 0
 
     def expression(self) -> Expr:
-        return self.equality()
+        return self.assignment()
+
+    def declaration(self) -> Stmt:
+        try:
+            if self.match_tokentype(TokenType.VAR):
+                return self.var_declaration()
+            
+            return self.statement()
+        except:
+            self.synchronize()
+            return None
+
+    def statement(self) -> Stmt:
+        if self.match_tokentype(TokenType.PRINT):
+            return self.print_statement()
+        
+        return self.expression_statement()
+
+    def print_statement(self) -> Stmt:
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Print(value)
+
+    def var_declaration(self) -> Stmt:
+        name = self.consume(TokenType.IDENTIFIER, "Expect variable name.")
+
+        initializer: Expr | None = None
+        if self.match_tokentype(TokenType.EQUAL):
+            initializer = self.expression()
+
+        if initializer is None: # Not sure about this...
+            initializer = Literal(None)
+        
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Var(name, initializer)
+
+    def expression_statement(self) -> Stmt:
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Expression(expr)
+
+    def assignment(self) -> Expr:
+        expr = self.equality()
+
+        if self.match_tokentype(TokenType.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+
+            # TODO: raise an error
+            print(equals, 'Invalid assignment target')
+
+        return expr
 
     def equality(self) -> Expr:
         expr = self.comparison()
 
-        while self.match(
+        while self.match_tokentype(
             TokenType.BANG_EQUAL,
             TokenType.EQUAL_EQUAL,
         ):
@@ -26,7 +85,7 @@ class Parser:
     def comparison(self) -> Expr:
         expr = self.term()
 
-        while self.match(
+        while self.match_tokentype(
             TokenType.GREATER,
             TokenType.GREATER_EQUAL,
             TokenType.LESS,
@@ -41,7 +100,7 @@ class Parser:
     def term(self) -> Expr:
         expr = self.factor()
 
-        while self.match(
+        while self.match_tokentype(
             TokenType.MINUS,
             TokenType.PLUS,
         ):
@@ -54,7 +113,7 @@ class Parser:
     def factor(self) -> Expr:
         expr = self.unary()
 
-        while self.match(
+        while self.match_tokentype(
             TokenType.SLASH,
             TokenType.STAR,
         ):
@@ -65,7 +124,7 @@ class Parser:
         return expr
 
     def unary(self) -> Expr:
-        if self.match(
+        if self.match_tokentype(
             TokenType.BANG,
             TokenType.MINUS,
         ):
@@ -76,7 +135,10 @@ class Parser:
         return self.primary()
 
     def primary(self) -> Expr:
-        if self.match(TokenType.LEFT_PAREN):
+        if self.match_tokentype(TokenType.IDENTIFIER):
+            return Variable(self.previous())
+
+        if self.match_tokentype(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(
                 TokenType.RIGHT_PAREN,
@@ -84,21 +146,21 @@ class Parser:
             )
             return Grouping(expr)
 
-        if self.match(TokenType.FALSE): return Literal(False)
-        if self.match(TokenType.TRUE): return Literal(True)
-        if self.match(TokenType.NIL): return Literal(None)
+        if self.match_tokentype(TokenType.FALSE): return Literal(False)
+        if self.match_tokentype(TokenType.TRUE): return Literal(True)
+        if self.match_tokentype(TokenType.NIL): return Literal(None)
 
-        if self.match(
+        if self.match_tokentype(
             TokenType.NUMBER,
             TokenType.STRING,
         ):
             return Literal(self.previous().literal)
 
-        raise Exception # TODO: Fix.
+        raise LoxSyntaxError # Ideall
 
         #throw error(peek(), "Expected expression.")
 
-    def match(self, *tokentypes: TokenType) -> bool:
+    def match_tokentype(self, *tokentypes: TokenType) -> bool:
         for tokentype in tokentypes:
             if self.check(tokentype):
                 self.advance()
@@ -156,10 +218,9 @@ class Parser:
     def previous(self) -> Token:
         return self.tokens[self.current - 1]
 
-    def parse(self) -> Expr:
-        try:
-            return self.expression()
-        except Exception as e:
-            print(f'An error occurred during parsing: {e}')
-            raise e
-            return None
+    def parse(self) -> list[Stmt]:
+        statements: list[Stmt] = []
+        while not self.isatend():
+            statements.append(self.declaration())
+        
+        return statements

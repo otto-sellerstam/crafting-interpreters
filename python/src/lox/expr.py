@@ -19,42 +19,60 @@ class Expr(ABC):
         """
         pass
 
-class Visitor[T](ABC):
-    @abstractmethod
-    def visit_binary_expr(self, expr: Binary) -> T:
-        """Process a binary expression.
-        
-        Args:
-            expr: The binary expression to process.
-        """
-        pass
+    class Visitor[T](ABC):
+        @abstractmethod
+        def visit_binary_expr(self, expr: Binary) -> T:
+            """Process a binary expression.
+            
+            Args:
+                expr: The binary expression to process.
+            """
+            pass
 
-    @abstractmethod
-    def visit_grouping_expr(self, expr: Grouping) -> T:
-        """Process a grouping expression.
-        
-        Args:
-            expr: The grouping expression to process.
-        """
-        pass
+        @abstractmethod
+        def visit_grouping_expr(self, expr: Grouping) -> T:
+            """Process a grouping expression.
+            
+            Args:
+                expr: The grouping expression to process.
+            """
+            pass
 
-    @abstractmethod
-    def visit_literal_expr(self, expr: Literal) -> T:
-        """Process a literal expression.
-        
-        Args:
-            expr: The literal expression to process.
-        """
-        pass
+        @abstractmethod
+        def visit_literal_expr(self, expr: Literal) -> T:
+            """Process a literal expression.
+            
+            Args:
+                expr: The literal expression to process.
+            """
+            pass
 
-    @abstractmethod
-    def visit_unary_expr(self, expr: Unary) -> T:
-        """Process a unary expression.
-        
-        Args:
-            expr: The unary expression to process.
-        """
-        pass
+        @abstractmethod
+        def visit_unary_expr(self, expr: Unary) -> T:
+            """Process a unary expression.
+            
+            Args:
+                expr: The unary expression to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_variable_expr(self, expr: Variable) -> T:
+            """Process a variable expression.
+            
+            Args:
+                expr: The variable expression to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_assign_expr(self, expr: Assign) -> T:
+            """Process a assign expression.
+            
+            Args:
+                expr: The assign expression to process.
+            """
+            pass
 
 #
 # Side note: NamedTuples would probably be preferrable here, but would result
@@ -69,7 +87,7 @@ class Binary(Expr):
     operator: Token
     right: Expr
 
-    def accept[T](self, visitor: Visitor[T]) -> T:
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_binary_expr(self)
 
 @dataclass(frozen=True)
@@ -77,7 +95,7 @@ class Grouping(Expr):
     """Represents a parenthesized expression."""
     expression: Expr
     
-    def accept[T](self, visitor: Visitor[T]) -> T:
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_grouping_expr(self)
 
 @dataclass(frozen=True)
@@ -85,7 +103,7 @@ class Literal(Expr):
     """Represents a literal value expression."""
     value: Any
     
-    def accept[T](self, visitor: Visitor[T]) -> T:
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_literal_expr(self)
 
 @dataclass(frozen=True)
@@ -94,5 +112,22 @@ class Unary(Expr):
     operator: Token
     right: Expr
     
-    def accept[T](self, visitor: Visitor[T]) -> T:
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_unary_expr(self)
+
+@dataclass(frozen=True)
+class Variable(Expr):
+    """Represents a unary operation expression."""
+    name: Token
+    
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_variable_expr(self)
+
+@dataclass(frozen=True)
+class Assign(Expr):
+    """Represents a unary operation expression."""
+    name: Token
+    value: Expr
+    
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_assign_expr(self)

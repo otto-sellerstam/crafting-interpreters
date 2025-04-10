@@ -84,7 +84,7 @@ class Scanner:
             self.advance()
 
         text = self.source[self.start:self.current]
-        tokentype = self.keywords[text]
+        tokentype = self.keywords.get(text, None)
         if tokentype is None:
             tokentype = TokenType.IDENTIFIER
 
