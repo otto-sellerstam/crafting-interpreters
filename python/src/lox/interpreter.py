@@ -16,7 +16,7 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         except TypeError as e:
             print("The following Python error occured: ", e)
         except ZeroDivisionError:
-            print("Division by zero not allowed! Bad stuff might happen")
+            print("Division by zero not allowed! Bad stuff might happen...")
 
     def visit_binary_expr(self, expr: Binary) -> Any:
         """Process a binary expression.

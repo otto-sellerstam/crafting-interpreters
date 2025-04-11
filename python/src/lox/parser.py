@@ -2,9 +2,7 @@ from lox.token import Token
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Unary, Literal, Variable, Assign
 from lox.stmt import Stmt, Print, Expression, Var, Block
-
-class LoxSyntaxError(SyntaxError):
-    pass
+from lox.errors import LoxSyntaxError
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -15,14 +13,18 @@ class Parser:
         return self.assignment()
 
     def declaration(self) -> Stmt:
-        try:
-            if self.match_tokentype(TokenType.VAR):
-                return self.var_declaration()
-            
-            return self.statement()
-        except:
-            self.synchronize()
-            return None
+        if self.match_tokentype(TokenType.VAR):
+            return self.var_declaration()
+                #    
+        return self.statement()
+        #try:
+        #    if self.match_tokentype(TokenType.VAR):
+        #        return self.var_declaration()
+        #    
+        #    return self.statement()
+        #except:
+        #    self.synchronize()
+        #    return None
 
     def statement(self) -> Stmt:
         if self.match_tokentype(TokenType.PRINT):
@@ -186,9 +188,7 @@ class Parser:
         if self.check(tokentype):
             return self.advance()
 
-        raise Exception # TODO: Fix.
-
-        #throw error(peek(), message);
+        raise LoxSyntaxError('LoxSyntaxError: ' + message) # TODO: Fix.
 
     def synchronize(self):
         self.advance()

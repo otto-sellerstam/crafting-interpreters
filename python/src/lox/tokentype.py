@@ -28,7 +28,7 @@ class TokenType(Enum):
     STRING = auto()
     NUMBER = auto()
     
-    # KEYWORDS,
+    # Keywords.
     AND = auto()
     CLASS = auto()
     ELSE = auto()

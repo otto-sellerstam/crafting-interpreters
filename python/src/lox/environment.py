@@ -2,9 +2,7 @@ from __future__ import annotations
 from typing import Any
 
 from lox.token import Token
-
-class LoxNameError(NameError):
-    pass
+from lox.errors import LoxNameError
 
 class Environment:
     def __init__(self, enclosing: Environment | None = None):
@@ -23,15 +21,15 @@ class Environment:
             self.enclosing.assign(name, value)
             return
 
-        raise LoxNameError('Variable not defined')
+        raise LoxNameError(f"Variable '{name.lexeme}' not defined")
 
     def get(self, name: Token) -> Any:
         if name.lexeme in self.values:
             if self.values[name.lexeme] is None:
-                raise LoxNameError('Variable not initialized')
+                raise LoxNameError(f"Variable '{name.lexeme}' not initialized")
             return self.values[name.lexeme]
 
         if self.enclosing is not None:
             return self.enclosing.get(name)
 
-        raise LoxNameError('Variable not defined')
+        raise LoxNameError(f"Variable '{name.lexeme}' not initialized")
