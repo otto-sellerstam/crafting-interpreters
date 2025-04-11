@@ -43,10 +43,12 @@ class Lox:
             line = input('> ')
             if line is None:
                 break
+
             try:
                 self.run(line)
             except LoxException as e:
                 print(e)
+
             self.had_error = False
 
     def error(

@@ -1,8 +1,8 @@
 class LoxException(Exception):
     pass
 
-class LoxSyntaxError(SyntaxError, LoxException):
+class LoxSyntaxError(LoxException):
     pass
 
-class LoxNameError(NameError, LoxException):
+class LoxNameError(LoxException):
     pass
