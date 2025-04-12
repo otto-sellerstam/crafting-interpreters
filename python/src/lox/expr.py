@@ -48,6 +48,15 @@ class Expr(ABC):
             pass
 
         @abstractmethod
+        def visit_logical_expr(self, expr: Logical) -> T:
+            """Process a unary expression.
+            
+            Args:
+                expr: The unary expression to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_unary_expr(self, expr: Unary) -> T:
             """Process a unary expression.
             
@@ -105,6 +114,16 @@ class Literal(Expr):
     
     def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_literal_expr(self)
+
+@dataclass(frozen=True)
+class Logical(Expr):
+    """Represents a literal value expression."""
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_logical_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):

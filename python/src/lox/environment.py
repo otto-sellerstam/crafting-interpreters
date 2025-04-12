@@ -32,4 +32,4 @@ class Environment:
         if self.enclosing is not None:
             return self.enclosing.get(name)
 
-        raise LoxNameError(f"Variable '{name.lexeme}' not initialized")
+        raise LoxNameError(f"Variable '{name.lexeme}' not defined")

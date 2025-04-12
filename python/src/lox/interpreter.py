@@ -1,8 +1,8 @@
 from typing import Any
 
 from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Literal, Unary, Variable, Assign
-from lox.stmt import Block, Stmt, Expression, Print, Var
+from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign
+from lox.stmt import Block, Stmt, Expression, If, Print, Var, While
 from lox.environment import Environment
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
@@ -69,6 +69,18 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
             expr: The literal expression to process.
         """
         return expr.value
+    
+    def visit_logical_expr(self, expr: Logical) -> Any:
+        left_value = self.evaluate(expr.left)
+
+        if expr.operator.tokentype == TokenType.OR:
+            if left_value:
+                return True
+        elif expr.operator.tokentype == TokenType.AND:
+            if not left_value:
+                return False
+
+        return self.evaluate(expr.right)
 
     def visit_unary_expr(self, expr: Unary) -> Any:
         """Process a unary expression.
@@ -111,6 +123,19 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
     def visit_expression_stmt(self, stmt: Expression) -> None:
         value = self.evaluate(stmt.expression)
         print(value)
+
+    def visit_if_stmt(self, stmt: If) -> None:
+        value = self.evaluate(stmt.condition)
+
+        if value:
+            self.execute(stmt.then_branch)
+        else:
+            if stmt.else_branch is not None:
+                self.execute(stmt.else_branch)
+
+    def visit_while_stmt(self, stmt: While) -> None:
+        while self.evaluate(stmt.condition):
+            self.execute(stmt.body)
 
     def visit_print_stmt(self, stmt: Print) -> None:
         ''' Same as above, but we don't discard the value but print it. '''

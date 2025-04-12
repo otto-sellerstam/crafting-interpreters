@@ -40,20 +40,38 @@ class Stmt(ABC):
             pass
 
         @abstractmethod
-        def visit_var_stmt(self, stmt: Var) -> T:
-            """Process a print statement.
+        def visit_if_stmt(self, stmt: If) -> T:
+            """Process an if statement.
             
             Args:
-                expr: The print statement to process.
+                expr: The if statement to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_while_stmt(self, stmt: While) -> T:
+            """Process a while statement.
+            
+            Args:
+                expr: The while statement to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_var_stmt(self, stmt: Var) -> T:
+            """Process a var statement.
+            
+            Args:
+                expr: The var statement to process.
             """
             pass
 
         @abstractmethod
         def visit_block_stmt(self, stmt: Block) -> T:
-            """Process a print statement.
+            """Process a block statement.
             
             Args:
-                expr: The print statement to process.
+                expr: The block statement to process.
             """
             pass
 
@@ -76,6 +94,24 @@ class Print(Stmt):
 
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_print_stmt(self)
+    
+@dataclass(frozen=True)
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt | None  # else statements are optional, ya know!
+
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_if_stmt(self)
+
+    
+@dataclass(frozen=True)
+class While(Stmt):
+    condition: Expr
+    body: Stmt
+
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_while_stmt(self)
 
 @dataclass(frozen=True)
 class Var(Stmt):

@@ -1,7 +1,7 @@
 from lox.token import Token
 from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Unary, Literal, Variable, Assign
-from lox.stmt import Stmt, Print, Expression, Var, Block
+from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign
+from lox.stmt import Stmt, Print, If, While, Expression, Var, Block
 from lox.errors import LoxSyntaxError
 
 class Parser:
@@ -29,10 +29,35 @@ class Parser:
     def statement(self) -> Stmt:
         if self.match_tokentype(TokenType.PRINT):
             return self.print_statement()
-        if self.match_tokentype(TokenType.LEFT_BRACE):
+        elif self.match_tokentype(TokenType.LEFT_BRACE):
             return Block(self.block())
+        elif self.match_tokentype(TokenType.IF):
+            return self.if_statement()
+        elif self.match_tokentype(TokenType.WHILE):
+            return self.while_statement()
         
         return self.expression_statement()
+    
+    def if_statement(self) -> Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match_tokentype(TokenType.ELSE):
+            else_branch = self.statement()
+
+        return If(condition, then_branch, else_branch)
+
+    def while_statement(self) -> Stmt:
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition")
+
+        body = self.statement()
+
+        return While(condition, body)
 
     def print_statement(self) -> Stmt:
         value = self.expression()
@@ -70,7 +95,7 @@ class Parser:
         return statements
 
     def assignment(self) -> Expr:
-        expr = self.equality()
+        expr = self.logical_or()
 
         if self.match_tokentype(TokenType.EQUAL):
             equals = self.previous()
@@ -82,6 +107,26 @@ class Parser:
 
             # TODO: raise an error
             print(equals, 'Invalid assignment target')
+
+        return expr
+    
+    def logical_or(self) -> Expr:
+        expr = self.logical_and()
+
+        while self.match_tokentype(TokenType.OR):
+            operator = self.previous()
+            right = self.logical_and()
+            expr = Logical(expr, operator, right)
+
+        return expr
+
+    def logical_and(self) -> Expr:
+        expr = self.equality()
+
+        while self.match_tokentype(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
 
         return expr
 
