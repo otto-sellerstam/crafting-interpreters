@@ -71,13 +71,13 @@ class Lox:
         where: str,
         message: str,
     ):
-        logger.error("[line " + str(line) + "] Error" + where + ": " + message)
+        logger.error('[line ' + str(line) + '] Error' + where + ': ' + message)
         self.had_error = True
 
 if __name__ == '__main__':
     lox = Lox()
 
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 2:  # Assume second argument is file path.
         lox.run_file(sys.argv[1])
     else:
         lox.run_prompt()
