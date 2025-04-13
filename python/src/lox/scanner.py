@@ -6,40 +6,42 @@ from lox.tokentype import TokenType
 
 class Scanner:
     keywords: dict[str, TokenType] = {
-        "and": TokenType.AND,
-        "class": TokenType.CLASS,
-        "else": TokenType.ELSE,
-        "false": TokenType.FALSE,
-        "for": TokenType.FOR,
-        "fun": TokenType.FUN,
-        "if": TokenType.IF,
-        "nil": TokenType.NIL,
-        "or": TokenType.OR,
-        "print": TokenType.PRINT,
-        "return": TokenType.RETURN,
-        "super": TokenType.SUPER,
-        "this": TokenType.THIS,
-        "true": TokenType.TRUE,
-        "var": TokenType.VAR,
-        "while": TokenType.WHILE,
+        'and': TokenType.AND,
+        'class': TokenType.CLASS,
+        'else': TokenType.ELSE,
+        'false': TokenType.FALSE,
+        'for': TokenType.FOR,
+        'fun': TokenType.FUN,
+        'if': TokenType.IF,
+        'nil': TokenType.NIL,
+        'or': TokenType.OR,
+        'print': TokenType.PRINT,
+        'return': TokenType.RETURN,
+        'super': TokenType.SUPER,
+        'this': TokenType.THIS,
+        'true': TokenType.TRUE,
+        'var': TokenType.VAR,
+        'while': TokenType.WHILE,
+        'break': TokenType.BREAK,
     }
 
-    #"och": TokenType.AND,
-    #"klass": TokenType.CLASS,
-    #"annars": TokenType.ELSE,
-    #"falskt": TokenType.FALSE,
-    #"när": TokenType.FOR,
-    #"funktion": TokenType.FUN,
-    #"om": TokenType.IF,
-    #"ingenting": TokenType.NIL,
-    #"eller": TokenType.OR,
-    #"skriv": TokenType.PRINT,
-    #"retur": TokenType.RETURN,
-    #"super": TokenType.SUPER,
-    #"denna": TokenType.THIS,
-    #"sant": TokenType.TRUE,
-    #"grej": TokenType.VAR,
-    #"när": TokenType.WHILE,
+    #'och': TokenType.AND,
+    #'klass': TokenType.CLASS,
+    #'annars': TokenType.ELSE,
+    #'falskt': TokenType.FALSE,
+    #'när': TokenType.FOR,
+    #'funktion': TokenType.FUN,
+    #'om': TokenType.IF,
+    #'ingenting': TokenType.NIL,
+    #'eller': TokenType.OR,
+    #'skriv': TokenType.PRINT,
+    #'retur': TokenType.RETURN,
+    #'super': TokenType.SUPER,
+    #'denna': TokenType.THIS,
+    #'sant': TokenType.TRUE,
+    #'grej': TokenType.VAR,
+    #'när': TokenType.WHILE,
+    #'sluta!' TokenType.BREAK,
 
     def __init__(self, source: str):
         self.source: str = source
@@ -53,7 +55,7 @@ class Scanner:
             self.start = self.current
             self.scan_token()
 
-        self.tokens.append(Token(TokenType.EOF, "", None, self.line))
+        self.tokens.append(Token(TokenType.EOF, '', None, self.line))
         
         return self.tokens
 

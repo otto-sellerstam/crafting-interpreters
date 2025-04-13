@@ -2,12 +2,13 @@ from typing import Any
 
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign
-from lox.stmt import Block, Stmt, Expression, If, Print, Var, While
-from lox.environment import Environment
+from lox.stmt import Block, Stmt, Expression, If, Print, Var, While, Break
+from lox.namespace import Namespace
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
-    environment = Environment()
+    namespace = Namespace()
+    break_detected = False
 
     def interpret(self, statements: list[Stmt]):
         try:
@@ -50,7 +51,7 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
             case TokenType.STAR:
                 return left * right
             case TokenType.PLUS:
-                return left + right # Don't think I need special string handling?
+                return left + right  # No special string handling. Yeah baby!
 
         return None
 
@@ -99,7 +100,7 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         return None
 
     def visit_variable_expr(self, expr: Variable) -> Any:
-        return self.environment.get(expr.name)
+        return self.namespace.get(expr.name)
 
     def evaluate(self, expr: Expr) -> Any:
         return expr.accept(self)
@@ -107,22 +108,24 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
     def execute(self, stmt: Stmt):
         stmt.accept(self)
 
-    def execute_block(self, stmts: list[Stmt], environment: Environment):
-        previous = self.environment
+    def execute_block(self, stmts: list[Stmt], namespace: Namespace):
+        previous = self.namespace
         try:
-            self.environment = environment
+            self.namespace = namespace
 
             for stmt in stmts:
                 self.execute(stmt)
+                if self.break_detected:
+                    break
         finally:
-            self.environment = previous
+            self.namespace = previous
 
     def visit_block_stmt(self, stmt: Block) -> None:
-        self.execute_block(stmt.statements, Environment(self.environment))
+        self.execute_block(stmt.statements, Namespace(self.namespace))
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         value = self.evaluate(stmt.expression)
-        print(value)
+        #print(value)
 
     def visit_if_stmt(self, stmt: If) -> None:
         value = self.evaluate(stmt.condition)
@@ -134,8 +137,12 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
                 self.execute(stmt.else_branch)
 
     def visit_while_stmt(self, stmt: While) -> None:
-        while self.evaluate(stmt.condition):
+        while self.evaluate(stmt.condition) and not self.break_detected:
             self.execute(stmt.body)
+        self.break_detected = False
+
+    def visit_break_stmt(self, stmt: Break) -> None:
+        self.break_detected = True 
 
     def visit_print_stmt(self, stmt: Print) -> None:
         ''' Same as above, but we don't discard the value but print it. '''
@@ -148,11 +155,11 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         if (stmt.initializer is not None):
             value = self.evaluate(stmt.initializer)
 
-        self.environment.define(stmt.name.lexeme, value)
+        self.namespace.define(stmt.name.lexeme, value)
 
     def visit_assign_expr(self, expr: Assign) -> Any:
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+        self.namespace.assign(expr.name, value)
         return value
 
     def is_truthy(self, value: Any):

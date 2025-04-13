@@ -1,7 +1,7 @@
 from lox.token import Token
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign
-from lox.stmt import Stmt, Print, If, While, Expression, Var, Block
+from lox.stmt import Stmt, Print, If, While, Expression, Var, Block, Break
 from lox.errors import LoxSyntaxError
 
 class Parser:
@@ -35,6 +35,10 @@ class Parser:
             return self.if_statement()
         elif self.match_tokentype(TokenType.WHILE):
             return self.while_statement()
+        elif self.match_tokentype(TokenType.FOR):
+            return self.for_statement()
+        elif self.match_tokentype(TokenType.BREAK):
+            return self.break_statement()
         
         return self.expression_statement()
     
@@ -58,6 +62,65 @@ class Parser:
         body = self.statement()
 
         return While(condition, body)
+    
+    def for_statement(self) -> Stmt:
+        '''
+        Instead of creating a new node type for our AST, we conver a for loop into
+        a while loop. This means that the interpreter doesn't even need to be touched!
+        The parser takes care of it all, almost like magic.
+        '''
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'")
+
+        initializer: None | Stmt
+        if self.match_tokentype(TokenType.SEMICOLON):
+            initializer = None
+        elif self.match_tokentype(TokenType.VAR):
+            initializer = self.var_declaration()
+        else:
+            initializer = self.expression_statement()
+
+        condition: None | Expr
+        if self.match_tokentype(TokenType.SEMICOLON):
+            condition = None
+        else:
+            condition = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expect ';' after loop condition")
+
+        increment: None | Expr
+        if self.match_tokentype(TokenType.SEMICOLON):
+            increment = None
+        else:
+            increment = self.expression()
+
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses")
+
+        body = self.statement()
+
+        # If there is an increment, run it after body.
+        if increment is not None:
+            body = Block([
+                body,
+                Expression(increment),
+            ])
+
+        # Create a while loop from condition and body.
+        if condition is None:
+            condition = Literal(True)
+        body = While(condition, body)
+
+        # Lastly, run the initializer before the previously constructed while loop.
+        if initializer is not None:
+            body = Block([
+                initializer,
+                body,
+            ])
+
+        return body
+    
+    def break_statement(self) -> Stmt:
+        self.consume(TokenType.SEMICOLON, "Expect ';' after break statement.")
+        return Break()
 
     def print_statement(self) -> Stmt:
         value = self.expression()

@@ -58,6 +58,15 @@ class Stmt(ABC):
             pass
 
         @abstractmethod
+        def visit_break_stmt(self, stmt: Break) -> T:
+            """Process a break statement.
+            
+            Args:
+                expr: The break statement to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_var_stmt(self, stmt: Var) -> T:
             """Process a var statement.
             
@@ -104,7 +113,6 @@ class If(Stmt):
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_if_stmt(self)
 
-    
 @dataclass(frozen=True)
 class While(Stmt):
     condition: Expr
@@ -112,6 +120,11 @@ class While(Stmt):
 
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_while_stmt(self)
+
+@dataclass(frozen=True)
+class Break(Stmt):
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_break_stmt(self)
 
 @dataclass(frozen=True)
 class Var(Stmt):
