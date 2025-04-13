@@ -18,7 +18,7 @@ class Lox:
 
     def run(self, source: str):
         scanner = Scanner(source)
-        tokens: list[Token] = scanner.scan_tokens()
+        tokens = scanner.scan_tokens()
 
         parser = Parser(tokens)
         statements = parser.parse()
