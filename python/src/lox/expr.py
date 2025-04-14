@@ -30,6 +30,15 @@ class Expr(ABC):
             pass
 
         @abstractmethod
+        def visit_call_expr(self, expr: Call) -> T:
+            """Process a call expression.
+            
+            Args:
+                expr: The call expression to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_grouping_expr(self, expr: Grouping) -> T:
             """Process a grouping expression.
             
@@ -98,6 +107,15 @@ class Binary(Expr):
 
     def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_binary_expr(self)
+
+@dataclass(frozen=True)
+class Call(Expr):
+    callee: Expr
+    arguments: list[Expr]
+    paren: Token  # To report potential runtime errors.
+    
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_call_expr(self)
 
 @dataclass(frozen=True)
 class Grouping(Expr):

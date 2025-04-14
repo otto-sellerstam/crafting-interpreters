@@ -1,8 +1,8 @@
 from lox.token import Token
 from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign
+from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
 from lox.stmt import Stmt, Print, If, While, Expression, Var, Block, Break
-from lox.errors import LoxSyntaxError
+from lox.errors import LoxSyntaxError, LoxArgumentError
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -256,7 +256,35 @@ class Parser:
             right = self.unary()
             return Unary(operator, right)
 
-        return self.primary()
+        return self.call()
+
+    def finish_call(self, callee: Expr) -> Expr:
+        arguments: list[Expr] = []
+
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match_tokentype(TokenType.COMMA):
+                if len(arguments) >= 255:  # For equivalence to bytecode VM.
+                    raise LoxArgumentError('More than 255 function arguments not supported')
+                arguments.append(self.expression())
+
+        paren = self.consume(
+            TokenType.RIGHT_PAREN,
+            "Expect ')' after arguments",
+        )
+
+        return Call(callee, arguments, paren)
+
+    def call(self) -> Expr:
+        expr = self.primary()
+
+        while True:
+            if self.match_tokentype(TokenType.LEFT_PAREN):
+                expr = self.finish_call(expr)
+            else:
+                break
+
+        return expr
 
     def primary(self) -> Expr:
         if self.match_tokentype(TokenType.IDENTIFIER):

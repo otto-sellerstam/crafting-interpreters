@@ -6,3 +6,9 @@ class LoxSyntaxError(LoxException):
 
 class LoxNameError(LoxException):
     pass
+
+class LoxArgumentError(LoxException):
+    pass
+
+class LoxTypeError(LoxException):
+    pass

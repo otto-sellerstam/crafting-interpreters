@@ -1,14 +1,24 @@
-from typing import Any
+from typing import Any, Final
 
 from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign
+from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
 from lox.stmt import Block, Stmt, Expression, If, Print, Var, While, Break
 from lox.namespace import Namespace
+from lox.lox_callable import LoxCallable
+from lox.lox_globals import Clock
+from lox.errors import LoxTypeError
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
-    namespace = Namespace()
+    lox_globals: Final = Namespace()
+    namespace = lox_globals  # Changes depending on scope.
     break_detected = False
+
+    def __init__(self):
+        self.lox_globals.define(
+            'clock',
+            Clock(),
+        )
 
     def interpret(self, statements: list[Stmt]):
         try:
@@ -54,6 +64,25 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
                 return left + right  # No special string handling. Yeah baby!
 
         return None
+
+    def visit_call_expr(self, expr: Call) -> Any:
+        callee = self.evaluate(expr.callee)
+
+        arguments = [self.evaluate(argument) for argument in expr.arguments]
+
+        function: LoxCallable = callee
+
+        if len(arguments) != function.arity():
+            raise LoxTypeError(
+                f'Expected {function.arity()} arguments but got {len(arguments)}'
+            )
+
+        try:
+            call_value = function.call(self, arguments)
+        except TypeError:
+            raise LoxTypeError('Can only call functions and classes')
+
+        return call_value
 
     def visit_grouping_expr(self, expr: Grouping) -> Any:
         """Process a grouping expression.
