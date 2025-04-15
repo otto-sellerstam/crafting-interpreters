@@ -25,23 +25,25 @@ class Scanner:
         'break': TokenType.BREAK,
     }
 
-    #'och': TokenType.AND,
-    #'klass': TokenType.CLASS,
-    #'annars': TokenType.ELSE,
-    #'falskt': TokenType.FALSE,
-    #'när': TokenType.FOR,
-    #'funktion': TokenType.FUN,
-    #'om': TokenType.IF,
-    #'ingenting': TokenType.NIL,
-    #'eller': TokenType.OR,
-    #'skriv': TokenType.PRINT,
-    #'retur': TokenType.RETURN,
-    #'super': TokenType.SUPER,
-    #'denna': TokenType.THIS,
-    #'sant': TokenType.TRUE,
-    #'grej': TokenType.VAR,
-    #'när': TokenType.WHILE,
-    #'sluta!' TokenType.BREAK,
+    #keywords: dict[str, TokenType] = {
+    #    'och': TokenType.AND,
+    #    'klass': TokenType.CLASS,
+    #    'annars': TokenType.ELSE,
+    #    'falskt': TokenType.FALSE,
+    #    'för': TokenType.FOR,
+    #    'funktion': TokenType.FUN,
+    #    'om': TokenType.IF,
+    #    'ingenting': TokenType.NIL,
+    #    'eller': TokenType.OR,
+    #    'skriv': TokenType.PRINT,
+    #    'retur': TokenType.RETURN,
+    #    'super': TokenType.SUPER,
+    #    'denna': TokenType.THIS,
+    #    'sant': TokenType.TRUE,
+    #    'grej': TokenType.VAR,
+    #    'när': TokenType.WHILE,
+    #    'sluta': TokenType.BREAK,
+    #}
 
     def __init__(self, source: str):
         self.source: str = source

@@ -40,6 +40,24 @@ class Stmt(ABC):
             pass
 
         @abstractmethod
+        def visit_function_stmt(self, stmt: Function) -> T:
+            """Process a function statement.
+            
+            Args:
+                expr: The function statement to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_return_stmt(self, stmt: Return) -> T:
+            """Process a return statement.
+            
+            Args:
+                expr: The return statement to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_if_stmt(self, stmt: If) -> T:
             """Process an if statement.
             
@@ -104,6 +122,23 @@ class Print(Stmt):
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_print_stmt(self)
     
+@dataclass(frozen=True)
+class Function(Stmt):
+    name: Token
+    params: list[Token]
+    body: list[Stmt]
+
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_function_stmt(self)
+
+@dataclass(frozen=True)
+class Return(Stmt):
+    keywork: Token
+    value: Expr | None
+    
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_return_stmt(self)
+
 @dataclass(frozen=True)
 class If(Stmt):
     condition: Expr

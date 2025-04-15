@@ -1,0 +1,19 @@
+// Testing break statements.
+
+grej i = 0;
+
+när (i < 10) {
+    skriv "i is:";
+    skriv i;
+    skriv "";
+
+    för (grej j = 0; j < 5; j = j + 1) {
+        skriv "j is:";
+        skriv j;
+        skriv "";
+        om (j == 2) {
+            sluta;
+        }
+    }
+    i = i + 1;
+}

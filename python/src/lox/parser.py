@@ -1,7 +1,7 @@
 from lox.token import Token
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
-from lox.stmt import Stmt, Print, If, While, Expression, Var, Block, Break
+from lox.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break
 from lox.errors import LoxSyntaxError, LoxArgumentError
 
 class Parser:
@@ -15,7 +15,8 @@ class Parser:
     def declaration(self) -> Stmt:
         if self.match_tokentype(TokenType.VAR):
             return self.var_declaration()
-                #    
+        elif self.match_tokentype(TokenType.FUN):
+            return self.function('function')
         return self.statement()
         #try:
         #    if self.match_tokentype(TokenType.VAR):
@@ -127,6 +128,16 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(value)
 
+    def return_statement(self) -> Stmt:
+        keyword = self.previous()
+        value = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expect ';' after return value.")
+
+        return Return(keyword, value)
+
     def var_declaration(self) -> Stmt:
         name = self.consume(TokenType.IDENTIFIER, "Expect variable name.")
 
@@ -145,6 +156,30 @@ class Parser:
         self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Expression(expr)
     
+    def function(self, kind: str) -> Function:
+        # TODO: kind is either 'function' or 'method'. Fix type hints.
+        name = self.consume(TokenType.IDENTIFIER, f'Expect {kind} name.')
+        self.consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name")
+        parameters: list[Token] = []
+
+        if not self.check(TokenType.RIGHT_PAREN):
+            parameters.append(
+                self.consume(TokenType.IDENTIFIER, "Expect parameter name")
+            )
+
+            while self.match_tokentype(TokenType.COMMA):
+                if len(parameters) >= 255:
+                    raise LoxArgumentError("Can't have more than 255 parameters")
+
+                parameters.append(
+                    self.consume(TokenType.IDENTIFIER, "Expect parameter name")
+                )
+
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters")
+        self.consume(TokenType.LEFT_BRACE, f"Expect '{{' before {kind} body")
+        body = self.block()
+        return Function(name, parameters, body)
+
     def block(self) -> list[Stmt]:
         statements: list[Stmt] = []
 

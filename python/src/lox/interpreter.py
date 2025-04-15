@@ -2,11 +2,13 @@ from typing import Any, Final
 
 from lox.tokentype import TokenType
 from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
-from lox.stmt import Block, Stmt, Expression, If, Print, Var, While, Break
+from lox.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
 from lox.namespace import Namespace
 from lox.lox_callable import LoxCallable
+from lox.lox_function import LoxFunction
 from lox.lox_globals import Clock
 from lox.errors import LoxTypeError
+from lox.return_exception import Return as ReturnException
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
@@ -156,6 +158,15 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         value = self.evaluate(stmt.expression)
         #print(value)
 
+    def visit_function_stmt(self, stmt: Function) -> None:
+        function = LoxFunction(stmt)
+        self.namespace.define(
+            stmt.name.lexeme,
+            function,
+        )
+
+        return None
+
     def visit_if_stmt(self, stmt: If) -> None:
         value = self.evaluate(stmt.condition)
 
@@ -177,6 +188,13 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         ''' Same as above, but we don't discard the value but print it. '''
         value = self.evaluate(stmt.expression)
         print(value)
+
+    def visit_return_stmt(self, stmt: Return) -> None:
+        value = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+        
+        raise ReturnException(value)
 
     def visit_var_stmt(self, stmt: Var) -> None:
         value = None
