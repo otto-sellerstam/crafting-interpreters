@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from lox.tokentype import TokenType
+from lox.token.tokentype import TokenType
 
 @dataclass
 class Token:

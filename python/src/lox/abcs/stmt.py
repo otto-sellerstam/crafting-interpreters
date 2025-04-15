@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-from lox.token import Token
-from lox.expr import Expr
+from lox.token.token import Token
+from lox.abcs.expr import Expr
 
 class Stmt(ABC):
     """Base class for all expression types in the Lox language."""

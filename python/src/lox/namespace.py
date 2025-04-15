@@ -1,8 +1,8 @@
 from __future__ import annotations
 from typing import Any
 
-from lox.token import Token
-from lox.errors import LoxNameError
+from lox.token.token import Token
+from lox.exceptions.errors import LoxNameError
 
 class Namespace:
     def __init__(self, enclosing: Namespace | None = None):

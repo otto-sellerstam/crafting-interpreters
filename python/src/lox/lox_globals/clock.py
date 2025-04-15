@@ -1,7 +1,8 @@
+from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 import time
 
-from lox.lox_callable import LoxCallable
+from lox.abcs.lox_callable import LoxCallable
 if TYPE_CHECKING: from lox.interpreter import Interpreter
 
 ### To be honest, this structure is probably not very pythonic.
@@ -11,7 +12,7 @@ class Clock(LoxCallable):
 
     def call(
         self,
-        interpreter: 'Interpreter',
+        interpreter: Interpreter,
         arguments: list[Any]
     ) -> Any:
         return time.time()

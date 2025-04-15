@@ -3,12 +3,12 @@ import logging
 import sys
 
 from lox.scanner import Scanner
-from lox.token import Token
-from lox.tokentype import TokenType
+from lox.token.token import Token
+from lox.token.tokentype import TokenType
 from lox.parser import Parser
 from lox.astprinter import AstPrinter
 from lox.interpreter import Interpreter
-from lox.errors import LoxException
+from lox.exceptions.errors import LoxException
 
 logger = logging.getLogger(__name__)
 

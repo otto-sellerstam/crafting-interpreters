@@ -1,20 +1,20 @@
 from typing import Any, Final
 
-from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
-from lox.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
+from lox.token.tokentype import TokenType
+from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
+from lox.abcs.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
 from lox.namespace import Namespace
-from lox.lox_callable import LoxCallable
-from lox.lox_function import LoxFunction
-from lox.lox_globals import Clock
-from lox.errors import LoxTypeError
-from lox.return_exception import Return as ReturnException
+from lox.abcs.lox_callable import LoxCallable
+from lox.callables.lox_function import LoxFunction
+from lox.lox_globals.clock import Clock
+from lox.exceptions.errors import LoxTypeError
+from lox.control_flow_exceptions.return_exception import Return as ReturnException
+from lox.control_flow_exceptions.break_exception import Break as BreakException
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
     lox_globals: Final = Namespace()
     namespace = lox_globals  # Changes depending on scope.
-    break_detected = False
 
     def __init__(self):
         self.lox_globals.define(
@@ -146,8 +146,6 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
             for stmt in stmts:
                 self.execute(stmt)
-                if self.break_detected:
-                    break
         finally:
             self.namespace = previous
 
@@ -159,7 +157,7 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         #print(value)
 
     def visit_function_stmt(self, stmt: Function) -> None:
-        function = LoxFunction(stmt)
+        function = LoxFunction(stmt, self.namespace)
         self.namespace.define(
             stmt.name.lexeme,
             function,
@@ -177,12 +175,14 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
                 self.execute(stmt.else_branch)
 
     def visit_while_stmt(self, stmt: While) -> None:
-        while self.evaluate(stmt.condition) and not self.break_detected:
-            self.execute(stmt.body)
-        self.break_detected = False
+        while self.evaluate(stmt.condition):
+            try:
+                self.execute(stmt.body)
+            except BreakException:
+                break
 
     def visit_break_stmt(self, stmt: Break) -> None:
-        self.break_detected = True 
+        raise BreakException 
 
     def visit_print_stmt(self, stmt: Print) -> None:
         ''' Same as above, but we don't discard the value but print it. '''

@@ -1,8 +1,8 @@
-from lox.token import Token
-from lox.tokentype import TokenType
-from lox.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
-from lox.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break
-from lox.errors import LoxSyntaxError, LoxArgumentError
+from lox.token.token import Token
+from lox.token.tokentype import TokenType
+from lox.abcs.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
+from lox.abcs.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break
+from lox.exceptions.errors import LoxSyntaxError, LoxArgumentError
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -40,6 +40,9 @@ class Parser:
             return self.for_statement()
         elif self.match_tokentype(TokenType.BREAK):
             return self.break_statement()
+        elif self.match_tokentype(TokenType.RETURN):
+            return self.return_statement()
+        
         
         return self.expression_statement()
     
@@ -343,7 +346,7 @@ class Parser:
         ):
             return Literal(self.previous().literal)
 
-        raise LoxSyntaxError # Ideall
+        raise LoxSyntaxError(self.peek())
 
         #throw error(peek(), "Expected expression.")
 
