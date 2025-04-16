@@ -194,6 +194,8 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         if stmt.value is not None:
             value = self.evaluate(stmt.value)
         
+        # We raise an Exception for control flow to unwind the interpeter stack to
+        # to the corresponding function call.
         raise ReturnException(value)
 
     def visit_var_stmt(self, stmt: Var) -> None:
