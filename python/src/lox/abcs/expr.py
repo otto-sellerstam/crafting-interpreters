@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
-from lox.token import Token
+from lox.token.token import Token
 
 class Expr(ABC):
     """Base class for all expression types in the Lox language."""

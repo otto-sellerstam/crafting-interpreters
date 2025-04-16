@@ -6,6 +6,9 @@ think it can be justified here. I'll ask on SO or Reddit later!
 from typing import Any
 
 class Return(Exception):
+    '''
+    Control flow exception to unwind callstack on return statement.
+    '''
     def __init__(
         self,
         value: Any,

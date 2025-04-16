@@ -1,7 +1,7 @@
 from typing import Any
 
-from lox.token import Token
-from lox.tokentype import TokenType
+from lox.token.token import Token
+from lox.token.tokentype import TokenType
 #from lox.lox import Lox
 
 class Scanner:
