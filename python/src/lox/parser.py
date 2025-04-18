@@ -1,7 +1,7 @@
 from lox.token.token import Token
-from lox.token.tokentype import TokenType
+from lox.enums.tokentype import TokenType
 from lox.abcs.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
-from lox.abcs.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break
+from lox.abcs.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break, Class
 from lox.exceptions.errors import LoxSyntaxError, LoxArgumentError
 
 class Parser:
@@ -17,6 +17,8 @@ class Parser:
             return self.var_declaration()
         elif self.match_tokentype(TokenType.FUN):
             return self.function('function')
+        elif self.match_tokentype(TokenType.CLASS):
+            return self.class_declaration()
         return self.statement()
         #try:
         #    if self.match_tokentype(TokenType.VAR):
@@ -26,6 +28,32 @@ class Parser:
         #except:
         #    self.synchronize()
         #    return None
+
+    def class_declaration(self) -> Stmt:
+        name = self.consume(
+            TokenType.IDENTIFIER,
+            "Expected cass name",
+        )
+
+        self.consume(
+            TokenType.LEFT_BRACE,
+            "Expected '{' before class body",
+        )
+
+        methods: list[Function] = []
+        while (
+            not self.check(TokenType.RIGHT_BRACE)
+            and not self.isatend()
+        ):
+            methods.append(self.function("method"))
+
+        
+        self.consume(
+            TokenType.RIGHT_BRACE,
+            "Expected '}' after class body",
+        )
+
+        return Class(name, methods)
 
     def statement(self) -> Stmt:
         if self.match_tokentype(TokenType.PRINT):

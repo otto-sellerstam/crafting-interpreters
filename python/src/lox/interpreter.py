@@ -1,33 +1,36 @@
 from typing import Any, Final
+from collections import defaultdict
 
-from lox.token.tokentype import TokenType
+from lox.token.token import Token
+from lox.enums.tokentype import TokenType
 from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
 from lox.abcs.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
 from lox.namespace import Namespace
 from lox.abcs.lox_callable import LoxCallable
 from lox.callables.lox_function import LoxFunction
+from lox.callables.lox_class import LoxClass
 from lox.lox_globals.clock import Clock
 from lox.exceptions.errors import LoxTypeError
 from lox.control_flow_exceptions.return_exception import Return as ReturnException
 from lox.control_flow_exceptions.break_exception import Break as BreakException
+from lox.abcs.stmt import Class
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
     lox_globals: Final = Namespace()
     namespace = lox_globals  # Changes depending on scope.
+    locals: defaultdict[Expr, int | None]
 
     def __init__(self):
-        self.lox_globals.define(
-            'clock',
-            Clock(),
-        )
+        self.lox_globals['clock'] = Clock()
+        self.locals = defaultdict(lambda: None)
 
     def interpret(self, statements: list[Stmt]):
         try:
             for statement in statements:
                 self.execute(statement)
-        except TypeError as e:
-            print("The following Python error occured: ", e)
+        #except TypeError as e:
+        #    print("The following Python error occured: ", e)
         except ZeroDivisionError:
             print("Division by zero not allowed! Bad stuff might happen...")
 
@@ -131,13 +134,25 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         return None
 
     def visit_variable_expr(self, expr: Variable) -> Any:
-        return self.namespace.get(expr.name)
+        return self.look_up_variable(expr.name, expr)
+
+    def look_up_variable(self, name: Token, expr: Expr) -> Any:
+        distance = self.locals[expr]
+
+        if distance is not None:
+            ancestor = self.namespace.ancestor(distance)
+            return ancestor[name.lexeme]
+        else:
+            return self.lox_globals[name.lexeme]
 
     def evaluate(self, expr: Expr) -> Any:
         return expr.accept(self)
 
     def execute(self, stmt: Stmt):
         stmt.accept(self)
+
+    def resolve(self, expr: Expr, depth: int):
+        self.locals[expr] = depth
 
     def execute_block(self, stmts: list[Stmt], namespace: Namespace):
         previous = self.namespace
@@ -152,16 +167,19 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
     def visit_block_stmt(self, stmt: Block) -> None:
         self.execute_block(stmt.statements, Namespace(self.namespace))
 
+    def visit_class_stmt(self, stmt: Class) -> None:
+        # First setting None lets us reference the class inside itself.
+        self.namespace[stmt.name.lexeme] = None
+        klass = LoxClass(stmt.name.lexeme)
+        self.namespace[stmt.name.lexeme] = klass
+
     def visit_expression_stmt(self, stmt: Expression) -> None:
         value = self.evaluate(stmt.expression)
         #print(value)
 
     def visit_function_stmt(self, stmt: Function) -> None:
         function = LoxFunction(stmt, self.namespace)
-        self.namespace.define(
-            stmt.name.lexeme,
-            function,
-        )
+        self.namespace[stmt.name.lexeme] = function
 
         return None
 
@@ -204,11 +222,19 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         if (stmt.initializer is not None):
             value = self.evaluate(stmt.initializer)
 
-        self.namespace.define(stmt.name.lexeme, value)
+        self.namespace[stmt.name.lexeme] = value
 
     def visit_assign_expr(self, expr: Assign) -> Any:
         value = self.evaluate(expr.value)
-        self.namespace.assign(expr.name, value)
+
+        distance = self.locals[expr]
+
+        if distance is not None:
+            ancestor = self.namespace.ancestor(distance)
+            ancestor.assign(expr.name.lexeme, value)
+        else:
+            self.lox_globals.assign(expr.name.lexeme, value)
+
         return value
 
     def is_truthy(self, value: Any):

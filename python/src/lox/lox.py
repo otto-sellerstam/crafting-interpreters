@@ -4,17 +4,21 @@ import sys
 
 from lox.scanner import Scanner
 from lox.token.token import Token
-from lox.token.tokentype import TokenType
+from lox.enums.tokentype import TokenType
 from lox.parser import Parser
 from lox.astprinter import AstPrinter
 from lox.interpreter import Interpreter
+from lox.resolver import Resolver
 from lox.exceptions.errors import LoxException
 
 logger = logging.getLogger(__name__)
 
 class Lox:
-    interpreter = Interpreter()
     had_error: bool = False
+
+    def __init__(self):
+        self.interpreter = Interpreter()
+        self.resolver = Resolver(self.interpreter)
 
     def run(self, source: str):
         scanner = Scanner(source)
@@ -25,7 +29,8 @@ class Lox:
 
         if self.had_error:
             return
-
+        
+        self.resolver.resolve_stmt(statements)
         self.interpreter.interpret(statements)
 
         #ast_printer = AstPrinter()

@@ -1,6 +1,6 @@
 from lox.abcs.expr import Expr, Binary, Grouping, Literal, Unary
 from lox.token.token import Token
-from lox.token.tokentype import TokenType
+from lox.enums.tokentype import TokenType
 
 class AstPrinter(Expr.Visitor[str]):
 

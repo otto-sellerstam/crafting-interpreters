@@ -102,6 +102,10 @@ class Stmt(ABC):
             """
             pass
 
+        @abstractmethod
+        def visit_class_stmt(self, stmt: Class) -> T:
+            pass
+
 #
 # Side note: NamedTuples would probably be preferrable here, but would result
 # in a clash of metaclasses.
@@ -175,3 +179,11 @@ class Block(Stmt):
 
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
         return visitor.visit_block_stmt(self)
+
+@dataclass(frozen=True)
+class Class(Stmt):
+    name: Token
+    methods: list[Function]
+
+    def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
+        return visitor.visit_class_stmt(self)

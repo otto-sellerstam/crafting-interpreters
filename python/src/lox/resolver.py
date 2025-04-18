@@ -2,6 +2,9 @@ from lox.abcs.stmt import *
 from lox.abcs.expr import *
 from lox.interpreter import Interpreter
 from lox.exceptions.errors import LoxException
+from lox.abcs.stmt import Break
+from lox.enums.functiontype import FunctionType
+from lox.abcs.stmt import Class
 
 scope = dict[str, bool]
 
@@ -14,18 +17,28 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def __init__(self, interpreter: Interpreter):
         self.interpreter = interpreter
         self.scopes: list[scope] = []  # We'll use as stack.
+        self.current_function: FunctionType = FunctionType.NONE
 
     def resolve_stmt(self, stmts: list[Stmt]) -> None:
         for statement in stmts:
             statement.accept(self)
 
-    def resolve_function(self, function: Function) -> None:
+    def resolve_function(
+            self,
+            function: Function,
+            functiontype: FunctionType
+    ) -> None:
+        enclosing_function = self.current_function
+        self.current_function = functiontype
+
         self.begin_scope()
         for param in function.params:
             self.declare(param)
             self.define(param)
         self.resolve_stmt(function.body)
         self.end_scope()
+
+        self.current_function = enclosing_function
 
     def resolve_expr(self, exprs: list[Expr]) -> None:
         for expression in exprs:
@@ -42,6 +55,12 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
             return
 
         scope = self.scopes[-1]  # Peeking!
+
+        if name.lexeme in self.scopes:
+            raise LoxException(
+                "Already a variable with that name in this scope"
+            )
+
         scope[name.lexeme] = False
 
     def define(self, name: Token) -> None:
@@ -52,7 +71,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         scope[name.lexeme] = True
 
     def resolve_local(self, expr: Expr, name: Token) -> None:
-        for i in range(len(self.scopes), -1, -1):
+        for i in range(len(self.scopes) - 1, -1, -1):
             if name.lexeme in self.scopes[i]:
                 self.interpreter.resolve(
                     expr,
@@ -65,6 +84,10 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         self.resolve_stmt(stmt.statements)
         self.end_scope()
 
+    def visit_class_stmt(self, stmt: Class) -> None:
+        self.declare(stmt.name)
+        self.define(stmt.name)
+
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.resolve_expr([stmt.expression])
 
@@ -72,7 +95,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         self.declare(stmt.name)
         self.define(stmt.name)
 
-        self.resolve_function(stmt)
+        self.resolve_function(stmt, FunctionType.FUNCTION)
     
     def visit_if_stmt(self, stmt: If) -> None:
         self.resolve_expr([stmt.condition])
@@ -84,9 +107,16 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def visit_print_stmt(self, stmt: Print) -> None:
         self.resolve_expr([stmt.expression])
 
+    # TODO: Add equivalent for break statements.
     def visit_return_stmt(self, stmt: Return) -> None:
+        if self.current_function == FunctionType.NONE:
+            raise LoxException("Unexpected return statement")
+
         if stmt.value is not None:
             self.resolve_expr([stmt.value])
+
+    def visit_break_stmt(self, stmt: Break) -> None:
+        return None
 
     def visit_var_stmt(self, stmt: Var) -> None:
         self.declare(stmt.name)
@@ -124,13 +154,15 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
 
     def visit_variable_expr(self, expr: Variable) -> None:
         if (
-            len(self.scopes) != 0
+            self.scopes
+            and expr.name.lexeme in self.scopes[-1] 
             and not self.scopes[-1][expr.name.lexeme]
         ):
-            raise LoxException("""Can't read name in 
-            it's own initializer
-            """)
+            raise LoxException(
+                """
+                Can't read name in 
+                it's own initializer
+                """
+            )
 
         self.resolve_local(expr, expr.name)
-
-    

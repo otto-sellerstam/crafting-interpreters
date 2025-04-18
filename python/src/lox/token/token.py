@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from typing import Any
 
-from lox.token.tokentype import TokenType
+from lox.enums.tokentype import TokenType
 
-@dataclass
+@dataclass(frozen=True)
 class Token:
     tokentype: TokenType
     lexeme: str
