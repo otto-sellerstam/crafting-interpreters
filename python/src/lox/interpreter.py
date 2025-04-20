@@ -8,12 +8,13 @@ from lox.abcs.stmt import Block, Stmt, Expression, If, Print, Var, While, Break,
 from lox.namespace import Namespace
 from lox.abcs.lox_callable import LoxCallable
 from lox.callables.lox_function import LoxFunction
-from lox.callables.lox_class import LoxClass
+from lox.callables.lox_class import LoxClass, LoxInstance
 from lox.lox_globals.clock import Clock
-from lox.exceptions.errors import LoxTypeError
+from lox.exceptions.errors import LoxTypeError, LoxException
 from lox.control_flow_exceptions.return_exception import Return as ReturnException
 from lox.control_flow_exceptions.break_exception import Break as BreakException
 from lox.abcs.stmt import Class
+from python.src.lox.abcs.expr import Get, Set
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
@@ -89,6 +90,12 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
         return call_value
 
+    def visit_get_expr(self, expr: Get) -> Any:
+        obj = self.evaluate(expr.obj)
+
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+
     def visit_grouping_expr(self, expr: Grouping) -> Any:
         """Process a grouping expression.
         
@@ -116,6 +123,18 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
                 return False
 
         return self.evaluate(expr.right)
+
+    def visit_set_expr(self, expr: Set) -> Any:
+        obj = self.evaluate(expr.obj)
+
+        if not isinstance(obj, LoxInstance):
+            raise LoxException(
+                "Only instances have fields!"
+            )
+        
+        value = self.evaluate(expr.value)
+        obj.set(expr.name, value)
+        return value
 
     def visit_unary_expr(self, expr: Unary) -> Any:
         """Process a unary expression.

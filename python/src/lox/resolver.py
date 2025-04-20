@@ -5,6 +5,7 @@ from lox.exceptions.errors import LoxException
 from lox.abcs.stmt import Break
 from lox.enums.functiontype import FunctionType
 from lox.abcs.stmt import Class
+from python.src.lox.abcs.expr import Get, Set
 
 scope = dict[str, bool]
 
@@ -19,7 +20,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         self.scopes: list[scope] = []  # We'll use as stack.
         self.current_function: FunctionType = FunctionType.NONE
 
-    def resolve_stmt(self, stmts: list[Stmt]) -> None:
+    def resolve(self, *stmts: Stmt | Expr) -> None:
         for statement in stmts:
             statement.accept(self)
 
@@ -35,14 +36,10 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         for param in function.params:
             self.declare(param)
             self.define(param)
-        self.resolve_stmt(function.body)
+        self.resolve(*function.body)
         self.end_scope()
 
         self.current_function = enclosing_function
-
-    def resolve_expr(self, exprs: list[Expr]) -> None:
-        for expression in exprs:
-            expression.accept(self)
 
     def begin_scope(self) -> None:
         self.scopes.append({})
@@ -81,7 +78,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
 
     def visit_block_stmt(self, stmt: Block) -> None:
         self.begin_scope()
-        self.resolve_stmt(stmt.statements)
+        self.resolve(*stmt.statements)
         self.end_scope()
 
     def visit_class_stmt(self, stmt: Class) -> None:
@@ -89,7 +86,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         self.define(stmt.name)
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
-        self.resolve_expr([stmt.expression])
+        self.resolve(stmt.expression)
 
     def visit_function_stmt(self, stmt: Function) -> None:
         self.declare(stmt.name)
@@ -98,14 +95,14 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
         self.resolve_function(stmt, FunctionType.FUNCTION)
     
     def visit_if_stmt(self, stmt: If) -> None:
-        self.resolve_expr([stmt.condition])
-        self.resolve_stmt([stmt.then_branch])
+        self.resolve(stmt.condition)
+        self.resolve(stmt.then_branch)
 
         if stmt.else_branch is not None:
-            self.resolve_stmt([stmt.else_branch])
+            self.resolve(stmt.else_branch)
 
     def visit_print_stmt(self, stmt: Print) -> None:
-        self.resolve_expr([stmt.expression])
+        self.resolve(stmt.expression)
 
     # TODO: Add equivalent for break statements.
     def visit_return_stmt(self, stmt: Return) -> None:
@@ -113,7 +110,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
             raise LoxException("Unexpected return statement")
 
         if stmt.value is not None:
-            self.resolve_expr([stmt.value])
+            self.resolve(stmt.value)
 
     def visit_break_stmt(self, stmt: Break) -> None:
         return None
@@ -121,36 +118,43 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def visit_var_stmt(self, stmt: Var) -> None:
         self.declare(stmt.name)
         if stmt.initializer != None:
-            self.resolve_expr([stmt.initializer])
+            self.resolve(stmt.initializer)
         self.define(stmt.name)
 
     def visit_while_stmt(self, stmt: While) -> None:
-        self.resolve_expr([stmt.condition])
-        self.resolve_stmt([stmt.body])
+        self.resolve(stmt.condition)
+        self.resolve(stmt.body)
 
     def visit_assign_expr(self, expr: Assign) -> None:
-        self.resolve_expr([expr.value])
+        self.resolve(expr.value)
         self.resolve_local(expr, expr.name)
         return
 
     def visit_binary_expr(self, expr: Binary) -> None:
-        self.resolve_expr([expr.left, expr.right])
+        self.resolve(expr.left, expr.right)
 
     def visit_call_expr(self, expr: Call) -> None:
-        self.resolve_expr([expr.callee])
-        self.resolve_expr(expr.arguments)
+        self.resolve(expr.callee)
+        self.resolve(*expr.arguments)
+
+    def visit_get_expr(self, expr: Get) -> None:
+        self.resolve(expr.obj)
 
     def visit_grouping_expr(self, expr: Grouping) -> None:
-        self.resolve_expr([expr.expression])
+        self.resolve(expr.expression)
 
     def visit_literal_expr(self, expr: Literal) -> None:
         return None
 
     def visit_logical_expr(self, expr: Logical) -> None:
-        self.resolve_expr([expr.left, expr.right])
+        self.resolve(expr.left, expr.right)
+
+    def visit_set_expr(self, expr: Set) -> None:
+        self.resolve(expr.value)
+        self.resolve(expr.obj)
 
     def visit_unary_expr(self, expr: Unary) -> None:
-        self.resolve_expr([expr.right])
+        self.resolve(expr.right)
 
     def visit_variable_expr(self, expr: Variable) -> None:
         if (

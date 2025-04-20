@@ -1,6 +1,6 @@
 from lox.token.token import Token
 from lox.enums.tokentype import TokenType
-from lox.abcs.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call
+from lox.abcs.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call, Get, Set
 from lox.abcs.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break, Class
 from lox.exceptions.errors import LoxSyntaxError, LoxArgumentError
 
@@ -233,6 +233,8 @@ class Parser:
             if isinstance(expr, Variable):
                 name = expr.name
                 return Assign(name, value)
+            elif isinstance(expr, Get):
+                return Set(expr.obj, expr.name, value)
 
             # TODO: raise an error
             print(equals, 'Invalid assignment target')
@@ -347,6 +349,12 @@ class Parser:
         while True:
             if self.match_tokentype(TokenType.LEFT_PAREN):
                 expr = self.finish_call(expr)
+            elif self.match_tokentype(TokenType.DOT):
+                name = self.consume(
+                    TokenType.IDENTIFIER,
+                    "Expected name after '.'"
+                )
+                expr = Get(expr, name)
             else:
                 break
 

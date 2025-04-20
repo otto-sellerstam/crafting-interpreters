@@ -39,6 +39,15 @@ class Expr(ABC):
             pass
 
         @abstractmethod
+        def visit_get_expr(self, expr: Get) -> T:
+            """Process a get expression.
+            
+            Args:
+                expr: The get expression to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_grouping_expr(self, expr: Grouping) -> T:
             """Process a grouping expression.
             
@@ -62,6 +71,15 @@ class Expr(ABC):
             
             Args:
                 expr: The unary expression to process.
+            """
+            pass
+
+        @abstractmethod
+        def visit_set_expr(self, expr: Set) -> T:
+            """Process a set expression.
+            
+            Args:
+                expr: The set expression to process.
             """
             pass
 
@@ -118,6 +136,14 @@ class Call(Expr):
         return visitor.visit_call_expr(self)
 
 @dataclass(frozen=True)
+class Get(Expr):
+    obj: Expr
+    name: Token
+
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_get_expr(self)
+
+@dataclass(frozen=True)
 class Grouping(Expr):
     """Represents a parenthesized expression."""
     expression: Expr
@@ -142,6 +168,15 @@ class Logical(Expr):
 
     def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_logical_expr(self)
+
+@dataclass(frozen=True)
+class Set(Expr):
+    obj: Expr
+    name: Token
+    value: Expr
+
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return self.visit_set_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):
