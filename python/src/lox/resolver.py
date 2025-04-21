@@ -5,7 +5,6 @@ from lox.exceptions.errors import LoxException
 from lox.abcs.stmt import Break
 from lox.enums.functiontype import FunctionType
 from lox.abcs.stmt import Class
-from python.src.lox.abcs.expr import Get, Set
 
 scope = dict[str, bool]
 
@@ -84,6 +83,10 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def visit_class_stmt(self, stmt: Class) -> None:
         self.declare(stmt.name)
         self.define(stmt.name)
+    
+        for method in stmt.methods:
+            declaration = FunctionType.METHOD
+            self.resolve_function(method, declaration)
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.resolve(stmt.expression)

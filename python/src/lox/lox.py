@@ -30,7 +30,7 @@ class Lox:
         if self.had_error:
             return
         
-        self.resolver.resolve_stmt(statements)
+        self.resolver.resolve(*statements)
         self.interpreter.interpret(statements)
 
         #ast_printer = AstPrinter()

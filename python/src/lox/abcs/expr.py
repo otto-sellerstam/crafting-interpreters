@@ -176,7 +176,7 @@ class Set(Expr):
     value: Expr
 
     def accept[T](self, visitor: Expr.Visitor[T]) -> T:
-        return self.visit_set_expr(self)
+        return visitor.visit_set_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):

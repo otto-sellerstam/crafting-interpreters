@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from lox.token.token import Token
 from lox.enums.tokentype import TokenType
-from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call
+from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call, Get, Set
 from lox.abcs.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
 from lox.namespace import Namespace
 from lox.abcs.lox_callable import LoxCallable
@@ -14,7 +14,6 @@ from lox.exceptions.errors import LoxTypeError, LoxException
 from lox.control_flow_exceptions.return_exception import Return as ReturnException
 from lox.control_flow_exceptions.break_exception import Break as BreakException
 from lox.abcs.stmt import Class
-from python.src.lox.abcs.expr import Get, Set
 
 class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
 
@@ -189,7 +188,13 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
     def visit_class_stmt(self, stmt: Class) -> None:
         # First setting None lets us reference the class inside itself.
         self.namespace[stmt.name.lexeme] = None
-        klass = LoxClass(stmt.name.lexeme)
+
+        methods = {
+            method.name.lexeme: LoxFunction(method, self.namespace)
+            for method in stmt.methods
+        }
+
+        klass = LoxClass(stmt.name.lexeme, methods)
         self.namespace[stmt.name.lexeme] = klass
 
     def visit_expression_stmt(self, stmt: Expression) -> None:

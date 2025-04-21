@@ -5,11 +5,13 @@ from dataclasses import dataclass, field
 from lox.exceptions.errors import LoxException
 from lox.token.token import Token
 from lox.abcs.lox_callable import LoxCallable
+from lox.callables.lox_function import LoxFunction
 if TYPE_CHECKING: from lox.interpreter import Interpreter
 
 @dataclass
 class LoxClass(LoxCallable):
     name: str
+    methods: dict[str, LoxFunction]
 
     def call(
         self,
@@ -21,6 +23,12 @@ class LoxClass(LoxCallable):
     
     def arity(self) -> int:
         return 0
+    
+    def find_method(self, name: str) -> LoxFunction | None:
+        if name in self.methods:
+            return self.methods[name]
+        
+        return None
 
 @dataclass
 class LoxInstance:
@@ -31,7 +39,11 @@ class LoxInstance:
         if name in self.fields:
             return self.fields[name]
         
-        raise LoxException("Undefined attribute")
+        method = self.klass.find_method(name.lexeme)
+        if method is not None:
+            return method
+        
+        raise LoxException(f"Undefined attribute {name} on {self}")
     
     def set(self, name: Token, value: Any):
         self.fields[name] = value
