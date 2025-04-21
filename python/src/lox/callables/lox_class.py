@@ -16,13 +16,19 @@ class LoxClass(LoxCallable):
     def call(
         self,
         interpreter: Interpreter,
-        arguments: list[Any]
+        arguments: list[Any],
     ) -> Any:
         instance = LoxInstance(self)
+        initializer = self.find_method("init")
+        if initializer is not None:
+            initializer.bind(instance).call(interpreter, arguments)
         return instance
     
     def arity(self) -> int:
-        return 0
+        initializer = self.find_method("init")
+        if initializer is None:
+            return 0
+        return initializer.arity()
     
     def find_method(self, name: str) -> LoxFunction | None:
         if name in self.methods:
@@ -41,7 +47,7 @@ class LoxInstance:
         
         method = self.klass.find_method(name.lexeme)
         if method is not None:
-            return method
+            return method.bind(self)
         
         raise LoxException(f"Undefined attribute {name} on {self}")
     

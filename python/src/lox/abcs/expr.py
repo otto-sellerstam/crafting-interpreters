@@ -84,6 +84,15 @@ class Expr(ABC):
             pass
 
         @abstractmethod
+        def visit_this_expr(self, expr: This) -> T:
+            """Process a this expression.
+            
+            Args:
+                expr: The this expression to process.
+            """
+            pass
+
+        @abstractmethod
         def visit_unary_expr(self, expr: Unary) -> T:
             """Process a unary expression.
             
@@ -177,6 +186,13 @@ class Set(Expr):
 
     def accept[T](self, visitor: Expr.Visitor[T]) -> T:
         return visitor.visit_set_expr(self)
+
+@dataclass(frozen=True)
+class This(Expr):
+    keyword: Token
+    
+    def accept[T](self, visitor: Expr.Visitor[T]) -> T:
+        return visitor.visit_this_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):

@@ -1,5 +1,31 @@
-from lox.abcs.stmt import *
-from lox.abcs.expr import *
+from lox.abcs.expr import (
+    Expr,
+    Binary,
+    Grouping,
+    Logical,
+    Unary,
+    Literal,
+    Variable,
+    Assign,
+    Call,
+    Get,
+    Set,
+    This,
+)
+from lox.abcs.stmt import (
+    Stmt,
+    Print,
+    Function,
+    Return,
+    If,
+    While,
+    Expression,
+    Var,
+    Block,
+    Break,
+    Class
+)
+from lox.token.token import Token
 from lox.interpreter import Interpreter
 from lox.exceptions.errors import LoxException
 from lox.abcs.stmt import Break
@@ -16,7 +42,7 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
 
     def __init__(self, interpreter: Interpreter):
         self.interpreter = interpreter
-        self.scopes: list[scope] = []  # We'll use as stack.
+        self.scopes: list[scope] = []  # Stack of scopes.
         self.current_function: FunctionType = FunctionType.NONE
 
     def resolve(self, *stmts: Stmt | Expr) -> None:
@@ -83,10 +109,18 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def visit_class_stmt(self, stmt: Class) -> None:
         self.declare(stmt.name)
         self.define(stmt.name)
+
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
     
         for method in stmt.methods:
-            declaration = FunctionType.METHOD
+            if method.name.lexeme == "init":
+                declaration = FunctionType.INITIALIZER
+            else:
+                declaration = FunctionType.METHOD
             self.resolve_function(method, declaration)
+
+        self.end_scope()
 
     def visit_expression_stmt(self, stmt: Expression) -> None:
         self.resolve(stmt.expression)
@@ -113,6 +147,11 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
             raise LoxException("Unexpected return statement")
 
         if stmt.value is not None:
+            if self.current_function == FunctionType.INITIALIZER:
+                raise LoxException(
+                    stmt.keyword,
+                    "Can't return a value from an initializer",    
+                )
             self.resolve(stmt.value)
 
     def visit_break_stmt(self, stmt: Break) -> None:
@@ -155,6 +194,9 @@ class Resolver(Stmt.Visitor[None], Expr.Visitor[None]):
     def visit_set_expr(self, expr: Set) -> None:
         self.resolve(expr.value)
         self.resolve(expr.obj)
+
+    def visit_this_expr(self, expr: This) -> None:
+        self.resolve_local(expr, expr.keyword)
 
     def visit_unary_expr(self, expr: Unary) -> None:
         self.resolve(expr.right)

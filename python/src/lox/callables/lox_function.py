@@ -6,15 +6,15 @@ from lox.abcs.lox_callable import LoxCallable
 from lox.abcs.stmt import Function
 from lox.namespace import Namespace
 from lox.control_flow_exceptions.return_exception import Return
-if TYPE_CHECKING: from lox.interpreter import Interpreter
+if TYPE_CHECKING:
+    from lox.interpreter import Interpreter
+    from lox.callables.lox_class import LoxInstance
 
 @dataclass
 class LoxFunction(LoxCallable):
     declaration: Final[Function]
     closure: Final[Namespace]
-
-    def __str__(self):
-        return f'<fn {self.declaration.name.lexeme}>'
+    is_initializer: Final[bool]
 
     def arity(self) -> int:
         return len(self.declaration.params)
@@ -39,6 +39,22 @@ class LoxFunction(LoxCallable):
                 namespace
             )
         except Return as ret:
+            if self.is_initializer:
+                return self.closure["this"]
+
             return ret.value
 
+        if self.is_initializer:
+            return self.closure["this"]
+
         return None
+
+    def bind(self, instance: LoxInstance):
+        namespace = Namespace(self.closure)
+        namespace["this"] = instance
+
+        return LoxFunction(
+            self.declaration,
+            namespace,
+            self.is_initializer
+        )

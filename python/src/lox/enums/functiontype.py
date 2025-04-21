@@ -4,3 +4,4 @@ class FunctionType(Enum):
     NONE = None
     FUNCTION = auto()
     METHOD = auto()
+    INITIALIZER = auto()

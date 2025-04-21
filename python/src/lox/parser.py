@@ -1,7 +1,32 @@
 from lox.token.token import Token
 from lox.enums.tokentype import TokenType
-from lox.abcs.expr import Expr, Binary, Grouping, Logical, Unary, Literal, Variable, Assign, Call, Get, Set
-from lox.abcs.stmt import Stmt, Print, Function, Return, If, While, Expression, Var, Block, Break, Class
+from lox.abcs.expr import (
+    Expr,
+    Binary,
+    Grouping,
+    Logical,
+    Unary,
+    Literal,
+    Variable,
+    Assign,
+    Call,
+    Get,
+    Set,
+    This,
+)
+from lox.abcs.stmt import (
+    Stmt,
+    Print,
+    Function,
+    Return,
+    If,
+    While,
+    Expression,
+    Var,
+    Block,
+    Break,
+    Class
+)
 from lox.exceptions.errors import LoxSyntaxError, LoxArgumentError
 
 class Parser:
@@ -363,6 +388,9 @@ class Parser:
     def primary(self) -> Expr:
         if self.match_tokentype(TokenType.IDENTIFIER):
             return Variable(self.previous())
+
+        if self.match_tokentype(TokenType.THIS):
+            return This(self.previous())
 
         if self.match_tokentype(TokenType.LEFT_PAREN):
             expr = self.expression()

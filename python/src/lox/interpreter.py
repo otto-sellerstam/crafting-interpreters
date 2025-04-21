@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from lox.token.token import Token
 from lox.enums.tokentype import TokenType
-from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, Unary, Variable, Assign, Call, Get, Set
+from lox.abcs.expr import Expr, Binary, Grouping, Literal, Logical, This, Unary, Variable, Assign, Call, Get, Set
 from lox.abcs.stmt import Block, Stmt, Expression, If, Print, Var, While, Break, Function, Return
 from lox.namespace import Namespace
 from lox.abcs.lox_callable import LoxCallable
@@ -135,6 +135,9 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         obj.set(expr.name, value)
         return value
 
+    def visit_this_expr(self, expr: This) -> Any:
+        return self.look_up_variable(expr.keyword, expr)
+
     def visit_unary_expr(self, expr: Unary) -> Any:
         """Process a unary expression.
         
@@ -190,7 +193,7 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         self.namespace[stmt.name.lexeme] = None
 
         methods = {
-            method.name.lexeme: LoxFunction(method, self.namespace)
+            method.name.lexeme: LoxFunction(method, self.namespace, True)
             for method in stmt.methods
         }
 
@@ -202,7 +205,11 @@ class Interpreter(Expr.Visitor[Any], Stmt.Visitor[None]):
         #print(value)
 
     def visit_function_stmt(self, stmt: Function) -> None:
-        function = LoxFunction(stmt, self.namespace)
+        function = LoxFunction(
+            stmt,
+            self.namespace,
+            False,    
+        )
         self.namespace[stmt.name.lexeme] = function
 
         return None

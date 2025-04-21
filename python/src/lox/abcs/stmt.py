@@ -137,7 +137,7 @@ class Function(Stmt):
 
 @dataclass(frozen=True)
 class Return(Stmt):
-    keywork: Token
+    keyword: Token
     value: Expr | None
     
     def accept[T](self, visitor: Stmt.Visitor[T]) -> T:
