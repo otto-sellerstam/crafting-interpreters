@@ -12,7 +12,7 @@ typedef struct {
     to execute. Optimal would be to keep ip local to have the C compiler keep
     it in a CPU register. Sometimes "PC" for Program Counter. */
     Value stack[STACK_MAX]; /* The stack itself. */
-    value* stackTop; /* Stack pointer! Points at the element just past the top value. */
+    Value* stackTop; /* Stack pointer! Points at the element just past the top value. */
 } VM;
 
 typedef enum {
