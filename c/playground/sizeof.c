@@ -1,5 +1,9 @@
+#include <stdio.h>
+#include <stdint.h>
+
 int main() {
-    printf("%d", sizeof(long double));
+    printf("uint8_t: %lu\n", sizeof(uint8_t));
+    printf("int: %lu\n", sizeof(int));
 
     return 0;
 }
