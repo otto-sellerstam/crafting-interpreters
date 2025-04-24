@@ -37,7 +37,7 @@ static bool isAtEnd() {
     return *scanner.current == '\0';
 }
 
-static char advance() {
+static char advance() {  /* Advances on a character level. */
     scanner.current++;
     return scanner.current[-1];
 }
@@ -184,6 +184,7 @@ static Token string() {
     return makeToken(TOKEN_STRING);
 }
 
+/* The below is the heart of the scanner. This is used in the compiler. */
 Token scanToken() {
     skipWhitespace();
     /*
