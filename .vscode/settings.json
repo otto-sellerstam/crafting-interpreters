@@ -3,6 +3,7 @@
     "files.associations": {
         "chunk.h": "c",
         "common.h": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "type_traits": "cpp"
     }
 }

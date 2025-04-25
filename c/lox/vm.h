@@ -13,6 +13,7 @@ typedef struct {
     it in a CPU register. Sometimes "PC" for Program Counter. */
     Value stack[STACK_MAX]; /* The stack itself. */
     Value* stackTop; /* Stack pointer! Points at the element just past the top value. */
+    Obj* objects; // Intrusive list.
 } VM;
 
 typedef enum {
@@ -20,6 +21,8 @@ typedef enum {
     INTERPRET_COMPILE_ERROR,
     INTERPRET_RUNTIME_ERROR
 } InterpretResult;
+
+extern VM vm;
 
 void initVM();
 void freeVM();
