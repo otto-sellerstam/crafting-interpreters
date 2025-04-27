@@ -2,6 +2,7 @@
 #define clox_vm_h
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 #define STACK_MAX 256
@@ -14,6 +15,7 @@ typedef struct {
     Value stack[STACK_MAX]; /* The stack itself. */
     Value* stackTop; /* Stack pointer! Points at the element just past the top value. */
     Obj* objects; // Intrusive list.
+    Table strings;
 } VM;
 
 typedef enum {

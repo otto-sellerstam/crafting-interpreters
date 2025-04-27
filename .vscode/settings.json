@@ -4,6 +4,7 @@
         "chunk.h": "c",
         "common.h": "c",
         "stdlib.h": "c",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "string.h": "c"
     }
 }

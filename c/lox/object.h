@@ -38,6 +38,7 @@ struct ObjString {
     Obj obj;  // Fields are expanded in place! Cool!
     int length;  // Effectively number of bytes.
     char* chars;  // Will be heap-allocated (ofc).
+    uint32_t hash;  // For hash table (table.c).
 };
 
 ObjString* takeString(char* chars, int length);
