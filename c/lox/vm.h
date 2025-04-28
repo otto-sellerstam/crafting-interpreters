@@ -14,6 +14,7 @@ typedef struct {
     it in a CPU register. Sometimes "PC" for Program Counter. */
     Value stack[STACK_MAX]; /* The stack itself. */
     Value* stackTop; /* Stack pointer! Points at the element just past the top value. */
+    Table globals;  // Hash table for global variables.
     Obj* objects; // Intrusive list.
     Table strings;
 } VM;
