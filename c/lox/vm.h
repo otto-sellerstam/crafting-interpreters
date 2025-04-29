@@ -8,15 +8,15 @@
 #define STACK_MAX 256
 
 typedef struct {
-    Chunk* chunk;
+    Chunk* chunk;  // Chunk of bytecodes.
     uint8_t* ip; /* Instruction Pointer: Keeps track of the current bytecode
     to execute. Optimal would be to keep ip local to have the C compiler keep
     it in a CPU register. Sometimes "PC" for Program Counter. */
     Value stack[STACK_MAX]; /* The stack itself. */
     Value* stackTop; /* Stack pointer! Points at the element just past the top value. */
     Table globals;  // Hash table for global variables.
-    Obj* objects; // Intrusive list.
-    Table strings;
+    Obj* objects;  // Intrusive list.
+    Table strings;  // clox interns all strings.
 } VM;
 
 typedef enum {
