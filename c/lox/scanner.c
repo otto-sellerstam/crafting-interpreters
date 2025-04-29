@@ -196,7 +196,6 @@ Token scanToken() {
     if (isAtEnd()) return makeToken(TOKEN_EOF);
 
     char c = advance();
-    //printf("%c\n", c);
     if (isAlpha(c)) return identifier();
     if (isDigit(c)) return number();
 

@@ -286,6 +286,7 @@ static void namedVariable(Token name, bool canAssign) {
 
     int arg = resolveLocal(current, &name);  // This can now be signed.
     if (arg != -1) {
+        printf("Accessing local var.");
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
     } else {
@@ -438,7 +439,9 @@ static void addLocal(Token name) {
 }
 
 static void declareVariable() {
-    if (current->scopeDepth == 0) return;
+    if (current->scopeDepth == 0) {
+        return;
+    }
 
     Token* name = &parser.previous;
     for (int i = current->localCount - 1; i >= 0; i--) {
