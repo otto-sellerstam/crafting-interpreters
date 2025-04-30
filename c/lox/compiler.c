@@ -286,7 +286,6 @@ static void namedVariable(Token name, bool canAssign) {
 
     int arg = resolveLocal(current, &name);  // This can now be signed.
     if (arg != -1) {
-        printf("Accessing local var.");
         getOp = OP_GET_LOCAL;
         setOp = OP_SET_LOCAL;
     } else {
@@ -412,7 +411,7 @@ static int resolveLocal(Compiler* compiler, Token* name) {
     Walking backwards assures that inner scopes shadows outer ones! So easy and cool!!!
     */
 
-    for (int i = compiler->localCount; i >= 0; i--) {
+    for (int i = compiler->localCount - 1; i >= 0; i--) {
         Local* local = &compiler->locals[i];
         if (identifiersEqual(name, &local->name)) {
             if (local->depth == -1) {  // -1 is sentinel to handle uninitialized variables.
